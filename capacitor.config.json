@@ -1,0 +1,13 @@
+{
+  "appId": "app.rakeeb.tracker",
+  "appName": "Rakeeb",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#f7f5f0"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "iconColor": "#0f7a44"
+    }
+  }
+}

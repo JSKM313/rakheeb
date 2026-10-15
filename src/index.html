@@ -1,0 +1,3382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rakeeb — رَقِيب</title>
+<!--NATIVE_SCRIPT-->
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f5f0;--bg2:#ffffff;--bg3:#f2efe8;--bg4:#eeeae1;
+  --green:#0f7a44;--green-d:#0b5c33;--green-dim:#e4f0e8;
+  --gold:#8a6a22;--gold-l:#a07c28;
+  --white:#1a2420;--muted:#5d6f65;--muted2:#7b8c82;
+  --border:rgba(20,92,53,0.14);--border-g:rgba(160,124,40,0.22);
+  --red:#b23b3b;--red-bg:rgba(178,59,59,0.07);
+  --on-green:#ffffff;
+  --shadow:0 1px 2px rgba(26,36,32,0.05);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--white);font-family:'Inter',sans-serif;font-size:15px}
+.screen{display:none;position:absolute;inset:0;flex-direction:column}
+.screen.active{display:flex}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
+  border-bottom:.5px solid var(--border);background:rgba(247,245,240,.92);
+  backdrop-filter:blur(14px);position:relative;z-index:10;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:9px;cursor:pointer}
+.logo-mark{width:30px;height:30px;background:var(--green-dim);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Amiri',serif;font-size:16px;color:var(--gold-l);border:.5px solid var(--border-g)}
+.logo-name{font-size:15px;font-weight:500}
+.logo-ar{font-family:'Amiri',serif;font-size:9px;color:var(--gold);letter-spacing:.1em;display:block;line-height:1}
+.tb-center{font-size:11px;color:var(--muted);text-align:center}
+.tb-center b{color:var(--white);display:block;font-size:13px;font-weight:500}
+.icon-btn{width:32px;height:32px;border-radius:8px;background:transparent;
+  border:.5px solid var(--border);color:var(--muted);cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;transition:color .2s,border-color .2s}
+.icon-btn:hover{color:var(--white);border-color:rgba(15,122,68,.32)}
+
+.scroll-body{flex:1;overflow-y:auto;position:relative;z-index:1}
+.scroll-body::-webkit-scrollbar{width:3px}
+.scroll-body::-webkit-scrollbar-thumb{background:var(--green-dim);border-radius:2px}
+
+/* ═══════════════════════════
+   EXEC SCREEN
+═══════════════════════════ */
+.exec-wrap{padding:18px}
+.prayer-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.prayer-strip::-webkit-scrollbar{display:none}
+.p-pill{flex-shrink:0;background:var(--bg2);border:.5px solid var(--border);
+  border-radius:9px;padding:9px 13px;text-align:center;min-width:68px;cursor:pointer;
+  transition:border-color .2s}
+.p-pill:hover{border-color:rgba(15,122,68,.32)}
+.p-pill.p-done{border-color:var(--green-d);background:var(--green-dim)}
+.p-pill.p-now{border-color:var(--green);background:var(--green-dim);box-shadow:0 0 0 1px rgba(15,122,68,.2)}
+.p-name{font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:.04em}
+.p-time{font-size:13px;font-weight:500}
+.p-dot{font-size:9px;margin-top:3px}
+.p-dot.gn{color:var(--green)}.p-dot.mt{color:var(--muted)}
+
+.interval-banner{background:var(--green-dim);border:.5px solid rgba(15,122,68,.24);
+  border-radius:11px;padding:13px 15px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:space-between}
+.ib-label{font-size:9px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.ib-name{font-size:14px;font-weight:500}
+.ib-next{font-size:11px;color:var(--muted);margin-top:1px}
+.ib-cd{font-size:22px;font-weight:300;color:var(--green);font-variant-numeric:tabular-nums}
+
+.exec-prog{background:var(--bg2);border:.5px solid var(--border);border-radius:11px;
+  padding:13px 15px;margin-bottom:16px}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.prog-lbl{font-size:11px;color:var(--muted)}.prog-val{font-size:12px;font-weight:500;color:var(--green)}
+.prog-bar{height:4px;background:rgba(15,122,68,.09);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .5s ease}
+
+.sec-lbl{font-size:9px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:9px;margin-top:4px;display:flex;align-items:center;gap:7px}
+.sec-lbl::after{content:'';flex:1;height:.5px;background:var(--border)}
+
+.exec-list{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.ei{background:var(--bg2);border:.5px solid var(--border);border-radius:9px;box-shadow:var(--shadow);
+  padding:8px 11px;cursor:pointer;display:flex;align-items:center;gap:9px;
+  transition:border-color .17s,transform .14s;-webkit-tap-highlight-color:transparent}
+.ei:hover{border-color:rgba(15,122,68,.32)}.ei:active{transform:scale(.98)}
+.ei.st-done{opacity:.5;border-color:var(--green-dim)}
+.ei.st-done .ei-name{text-decoration:line-through;color:var(--muted)}
+.ei.st-skip{opacity:.33;border-color:rgba(178,59,59,.13)}
+.ei-num{width:22px;height:22px;border-radius:50%;flex-shrink:0;background:var(--green-dim);
+  border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:500;color:var(--green);transition:all .2s}
+.ei.st-done .ei-num{background:var(--green);color:var(--on-green);border-color:var(--green);font-size:12px}
+.ei.st-skip .ei-num{background:var(--red-bg);color:var(--red);border-color:rgba(178,59,59,.2);font-size:12px}
+.ei-icon{font-size:15px;flex-shrink:0}
+.ei-body{flex:1;min-width:0}
+.ei-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ei-meta{font-size:10px;color:var(--muted);margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ei-val{font-size:12px;color:var(--green);font-weight:500;flex-shrink:0;
+  background:var(--green-dim);border-radius:5px;padding:2px 8px}
+.ei-arr{font-size:14px;color:var(--muted);flex-shrink:0}
+
+/* prayer card with activity strip */
+.ei-prayer-wrap{display:flex;flex-direction:column;background:var(--bg2);
+  border:.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);
+  transition:border-color .17s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ei-prayer-wrap:hover{border-color:rgba(15,122,68,.34)}
+.ei-prayer-wrap:active .ei-prayer-top{transform:scale(.98)}
+.ei-prayer-wrap.st-done{opacity:.85;border-color:var(--green-dim)}
+.ei-prayer-wrap.st-done .ei-name{text-decoration:line-through;color:var(--muted)}
+.ei-prayer-wrap.st-skip{opacity:.4;border-color:rgba(178,59,59,.13)}
+.ei-prayer-top{display:flex;align-items:center;gap:10px;padding:9px 12px}
+.ei-act-strip{border-top:.5px solid var(--border);padding:5px 12px;
+  display:flex;align-items:center;gap:7px;background:rgba(26,36,32,.04)}
+.ei-act-strip-dots{display:flex;gap:4px;align-items:center;flex:1}
+.act-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.act-dot.d-done{background:var(--green)}
+.act-dot.d-skip{background:var(--red)}
+.act-dot.d-pending{background:rgba(26,36,32,.14)}
+.ei-act-count{font-size:10px;color:var(--muted);white-space:nowrap}
+.ei-act-count b{color:var(--white);font-weight:500}
+
+.no-plan{text-align:center;padding:40px 20px;background:var(--bg2);
+  border:.5px dashed var(--border);border-radius:13px;margin-bottom:20px}
+.no-plan-icon{font-size:32px;margin-bottom:10px}
+.no-plan-h{font-size:15px;font-weight:500;margin-bottom:5px}
+.no-plan-p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+
+.finish-block{text-align:center;padding:28px 18px;background:var(--green-dim);
+  border:.5px solid rgba(15,122,68,.24);border-radius:13px;margin-top:16px}
+.fin-ar{font-family:'Amiri',serif;font-size:24px;color:var(--gold-l);direction:rtl;margin-bottom:4px}
+.fin-tr{font-size:10px;color:var(--muted);margin-bottom:14px;letter-spacing:.05em}
+.fin-h{font-size:17px;font-weight:500;margin-bottom:5px}
+.fin-p{font-size:12px;color:var(--muted)}
+.fin-stats{display:flex;gap:9px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.f-stat{background:var(--bg2);border:.5px solid var(--border);border-radius:7px;padding:9px 14px;text-align:center}
+.f-sv{font-size:19px;font-weight:500;color:var(--green)}.f-sl{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ═══════════════════════════
+   PLANNER SCREEN
+═══════════════════════════ */
+#s-plan .scroll-body{padding:18px}
+.plan-intro{margin-bottom:20px}
+.plan-intro h2{font-size:19px;font-weight:400;margin-bottom:3px}
+.plan-intro h2 em{font-style:normal;font-family:'Amiri',serif;color:var(--gold)}
+.plan-intro p{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* PRAYER ROWS in planner — simple, just name */
+.plan-prayer-list{display:flex;gap:8px;margin-bottom:20px;justify-content:space-between}
+.ppr-simple{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1;min-width:0}
+.ppr-circle{width:54px;height:54px;border-radius:50%;background:var(--bg2);
+  border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:24px;transition:border-color .2s,background .2s,transform .15s;position:relative}
+.ppr-simple:hover .ppr-circle{border-color:var(--green);background:var(--green-dim);transform:translateY(-3px)}
+.ppr-circle.planned{background:var(--green-dim);border-color:var(--green)}
+.ppr-plan-dot{position:absolute;top:1px;right:1px;width:11px;height:11px;
+  background:var(--green);border-radius:50%;border:1.5px solid var(--bg)}
+.ppr-name{font-size:11px;font-weight:500;color:var(--muted);text-align:center;white-space:nowrap}
+.ppr-time{font-size:10px;color:var(--muted2);text-align:center}
+.ppr-simple:hover .ppr-name{color:var(--white)}
+
+/* activity row actions */
+.act-row-wrap{position:relative}
+.act-actions{display:flex;gap:3px;align-items:center;flex-shrink:0}
+.act-inline{display:flex;gap:4px;align-items:center;flex-shrink:0}
+.act-unit-lbl{font-size:9px;color:var(--muted2);min-width:28px;text-align:left}
+.act-edit-btn,.act-del-btn{width:20px;height:20px;border-radius:5px;border:none;
+  cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;
+  font-family:'Inter',sans-serif;transition:background .15s,opacity .15s;opacity:0.5}
+.act-edit-btn{background:rgba(15,122,68,.1);color:var(--green)}
+.act-del-btn{background:rgba(178,59,59,.09);color:var(--red)}
+.act-edit-btn:hover{background:rgba(15,122,68,.28);opacity:1}
+.act-del-btn:hover{background:rgba(178,59,59,.24);opacity:1}
+
+/* edit/create item popup form */
+.item-form{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.item-form-row{display:flex;flex-direction:column;gap:4px}
+.item-form-label{font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase}
+.item-form-input{background:var(--bg3);border:.5px solid var(--border);border-radius:7px;
+  color:var(--white);font-size:13px;padding:9px 12px;outline:none;font-family:'Inter',sans-serif;width:100%}
+.item-form-input:focus{border-color:rgba(15,122,68,.42)}
+.icon-picker{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.icon-opt{width:34px;height:34px;border-radius:7px;background:var(--bg3);border:.5px solid var(--border);
+  font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-opt:hover{border-color:var(--green);background:var(--green-dim)}
+.icon-opt.sel{border-color:var(--green);background:var(--green-dim)}
+.del-confirm{background:rgba(178,59,59,.1);border:.5px solid rgba(178,59,59,.28);
+  border-radius:9px;padding:14px;text-align:center;margin-top:4px}
+.del-confirm p{font-size:13px;color:var(--white);margin-bottom:12px}
+.del-confirm-btns{display:flex;gap:8px}
+.del-yes{flex:1;background:var(--red);color:#fff;border:none;border-radius:7px;
+  padding:10px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500}
+.del-no{flex:1;background:var(--bg3);color:var(--muted);border:.5px solid var(--border);
+  border-radius:7px;padding:10px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif}
+.cat-add-btn{width:100%;background:transparent;border:.5px dashed var(--border);
+  border-radius:7px;color:var(--muted);font-size:11px;padding:6px;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;margin-top:3px}
+.cat-add-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+
+/* ACTIVITY HEADING BUILDER */
+.plan-sec{margin-bottom:16px}
+.plan-sec-hd{font-size:9px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.plan-sec-hd::after{content:'';flex:1;height:.5px;background:var(--border)}
+
+/* Category selector */
+.cat-selector{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+.cat-btn{font-size:11px;padding:5px 10px;border-radius:7px;
+  border:.5px solid var(--border);color:var(--muted);
+  cursor:pointer;background:transparent;font-family:'Inter',sans-serif;
+  display:flex;align-items:center;gap:4px;transition:all .18s}
+.cat-btn:hover{border-color:rgba(15,122,68,.32);color:var(--white)}
+.cat-btn.open{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+
+/* Activity section under a category */
+.act-section{background:var(--bg2);border:.5px solid var(--border);border-radius:10px;
+  margin-bottom:7px;overflow:hidden}
+.act-sec-head{padding:8px 12px;display:flex;align-items:center;gap:8px;
+  border-bottom:.5px solid var(--border);background:var(--bg3)}
+.act-sec-icon{font-size:15px}
+.act-sec-name{font-size:12px;font-weight:500;flex:1}
+.act-sec-toggle{font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;
+  font-family:'Inter',sans-serif;color:var(--muted2);padding:2px 6px}
+.act-items{padding:6px 8px;display:flex;flex-direction:column;gap:4px}
+
+/* individual activity item in planner */
+.act-row{display:flex;align-items:center;gap:7px;padding:6px 9px;
+  background:var(--bg4);border-radius:7px;border:.5px solid transparent;
+  cursor:pointer;transition:border-color .16s,background .16s;-webkit-tap-highlight-color:transparent}
+.act-row:hover{border-color:var(--border)}
+.act-row.picked{border-color:var(--green);background:var(--green-dim)}
+.act-chk{width:16px;height:16px;border-radius:4px;border:.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;
+  transition:all .15s}
+.act-row.picked .act-chk{background:var(--green);border-color:var(--green);color:var(--on-green);font-weight:700}
+.act-icon2{font-size:14px;flex-shrink:0}
+.act-lbl{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-row.picked .act-lbl{color:var(--white)}
+
+/* value input row — shown when picked */
+.val-row{display:flex;align-items:center;gap:6px;padding:0 9px 6px 30px}
+.val-label{font-size:10px;color:var(--muted2);white-space:nowrap}
+.val-input{background:var(--bg3);border:.5px solid var(--border);border-radius:5px;
+  color:var(--white);font-size:12px;padding:3px 7px;outline:none;
+  font-family:'Inter',sans-serif;width:60px;text-align:center;transition:border-color .2s}
+.val-input::-webkit-outer-spin-button,.val-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.val-input:focus{border-color:var(--green)}
+.val-unit{font-size:10px;color:var(--muted);white-space:nowrap}
+
+/* custom add */
+.custom-add-row{display:flex;gap:7px;margin-top:8px}
+.custom-add-row input{flex:1;background:var(--bg2);border:.5px solid var(--border);
+  border-radius:8px;color:var(--white);font-size:13px;padding:9px 12px;
+  outline:none;font-family:'Inter',sans-serif}
+.custom-add-row input::placeholder{color:var(--muted)}
+.custom-add-row input:focus{border-color:rgba(15,122,68,.36)}
+.custom-add-row button{background:var(--green-dim);border:.5px solid var(--green);
+  border-radius:8px;color:var(--green);font-size:13px;padding:9px 13px;
+  cursor:pointer;font-family:'Inter',sans-serif}
+
+.plan-submit{width:100%;background:var(--green);color:var(--on-green);border:none;
+  padding:13px;border-radius:10px;font-size:14px;font-weight:600;
+  cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif;transition:background .2s}
+.plan-submit:hover{background:#0d6b3b}
+
+/* ═══════════════════════════
+   SETTINGS
+═══════════════════════════ */
+#s-settings .scroll-body{padding:18px}
+.set-sec{margin-bottom:24px}
+.set-sec-hd{font-size:9px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.set-sec-hd::after{content:'';flex:1;height:.5px;background:var(--border)}
+.set-card{background:var(--bg2);border:.5px solid var(--border);border-radius:11px;padding:14px}
+.set-lbl{font-size:14px;font-weight:500;margin-bottom:3px}
+.set-desc{font-size:11px;color:var(--muted);margin-bottom:13px;line-height:1.5}
+.dm-cards{display:flex;gap:9px}
+.dm-card{flex:1;background:var(--bg3);border:.5px solid var(--border);border-radius:9px;
+  padding:13px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.dm-card:hover{border-color:rgba(15,122,68,.32)}
+.dm-card.active{border-color:var(--green);background:var(--green-dim)}
+.dm-icon{font-size:22px;margin-bottom:5px}
+.dm-name{font-size:12px;font-weight:500;margin-bottom:2px}
+.dm-ar{font-family:'Amiri',serif;font-size:11px;color:var(--gold);margin-bottom:3px}
+.dm-desc{font-size:10px;color:var(--muted);line-height:1.4}
+.pt-list{display:flex;flex-direction:column;gap:6px}
+.pt-row{background:var(--bg2);border:.5px solid var(--border);border-radius:8px;
+  padding:9px 13px;display:flex;align-items:center;justify-content:space-between}
+.pt-name{font-size:13px;font-weight:500}
+.pt-ar{font-size:11px;color:var(--gold);font-family:'Amiri',serif}
+.pt-inp{background:transparent;border:.5px solid var(--border);border-radius:6px;
+  color:var(--white);font-size:13px;padding:4px 9px;outline:none;
+  font-family:'Inter',sans-serif;width:86px;text-align:center}
+.pt-inp:focus{border-color:var(--green)}
+.set-save{width:100%;background:var(--green);color:var(--on-green);border:none;
+  padding:12px;border-radius:9px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;margin-top:4px}
+.set-save:hover{background:#0d6b3b}
+
+/* ═══════════════════════════
+   POPUP
+═══════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(26,36,32,.42);backdrop-filter:blur(5px);
+  align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.popup{background:var(--bg2);border:.5px solid var(--border);border-radius:18px 18px 0 0;
+  width:100%;max-width:560px;max-height:84vh;overflow-y:auto;
+  padding:22px 18px 36px;animation:sU .24s ease}
+@keyframes sU{from{transform:translateY(32px);opacity:0}to{transform:translateY(0);opacity:1}}
+.popup::-webkit-scrollbar{width:3px}
+.popup::-webkit-scrollbar-thumb{background:var(--green-dim)}
+.pop-handle{width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.pop-icon{font-size:28px;margin-bottom:9px}
+.pop-name{font-size:20px;font-weight:500;margin-bottom:2px}
+.pop-status{font-size:11px;color:var(--muted);margin-bottom:16px}
+
+/* prayer popup detail options */
+.pop-opts-label{font-size:9px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.pop-opts-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.popt{font-size:12px;padding:6px 12px;border-radius:7px;border:.5px solid var(--border);
+  color:var(--muted);cursor:pointer;background:transparent;font-family:'Inter',sans-serif;
+  transition:all .15s}
+.popt:hover{border-color:rgba(15,122,68,.32);color:var(--white)}
+.popt.on{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.popt.bad{background:rgba(178,59,59,.09);border-color:rgba(178,59,59,.24);color:var(--red)}
+.popt.warn{background:rgba(160,124,40,.1);border-color:var(--border-g);color:var(--gold)}
+
+/* generic popup detail box */
+.pop-box{background:var(--bg3);border-radius:8px;padding:11px 13px;margin-bottom:9px}
+.pop-box-l{font-size:9px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.pop-box-v{font-size:13px;color:var(--white);line-height:1.6}
+
+/* value field in popup for activities */
+.pop-val-row{display:flex;align-items:center;gap:9px;margin-bottom:12px;
+  background:var(--bg3);border-radius:8px;padding:11px 13px}
+.pop-val-l{font-size:11px;color:var(--muted);flex:1}
+.pop-val-inp{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;
+  color:var(--white);font-size:14px;padding:5px 10px;outline:none;
+  font-family:'Inter',sans-serif;width:80px;text-align:center;font-weight:500}
+.pop-val-inp:focus{border-color:var(--green)}
+.pop-val-unit{font-size:12px;color:var(--muted);white-space:nowrap}
+
+.pop-remark{width:100%;background:var(--bg3);border:.5px solid var(--border);border-radius:7px;
+  color:var(--white);font-size:13px;padding:9px 12px;outline:none;
+  font-family:'Inter',sans-serif;resize:none;margin-top:8px}
+.pop-remark::placeholder{color:var(--muted)}
+.pop-remark:focus{border-color:rgba(15,122,68,.32)}
+.pop-actions{display:flex;gap:7px;margin-top:14px}
+.pop-btn{flex:1;padding:11px;border-radius:8px;font-size:12px;font-weight:500;
+  cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:opacity .2s}
+.pop-btn:hover{opacity:.85}
+.pb-done{background:var(--green);color:var(--on-green)}
+.pb-skip{background:var(--red-bg);color:var(--red);border:.5px solid rgba(178,59,59,.2)!important}
+.pb-close{background:var(--bg3);color:var(--muted);border:.5px solid var(--border)!important}
+
+.wakt-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;
+  background:rgba(15,122,68,.09);color:var(--green);border:.5px solid rgba(15,122,68,.22);
+  border-radius:5px;padding:2px 7px;margin-top:3px}
+.wakt-tag.gold{background:rgba(160,124,40,.1);color:var(--gold);border-color:var(--border-g)}
+.act-log-entry{background:var(--bg3);border:.5px solid var(--border);border-radius:6px;
+  padding:5px 9px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.act-log-wakt{font-size:10px;color:var(--green);font-weight:500;min-width:52px}
+.act-log-val{font-size:12px;font-weight:500;color:var(--white)}
+.act-log-unit{font-size:10px;color:var(--muted)}
+.act-log-time{font-size:9px;color:var(--muted2);margin-left:auto}
+.act-log-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 4px}
+.act-log-del:hover{color:var(--red)}
+.pop-add-log{display:flex;flex-direction:column;gap:8px;
+  background:var(--bg3);border:.5px solid var(--border);border-radius:9px;padding:12px;margin-top:8px}
+.pop-add-log-title{font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.pop-log-row{display:flex;gap:7px;align-items:center}
+.pop-log-select{flex:1;background:var(--bg2);border:.5px solid var(--border);border-radius:7px;
+  color:var(--white);font-size:13px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif}
+.pop-log-select:focus{border-color:rgba(15,122,68,.42)}
+.pop-log-inp{width:80px;background:var(--bg2);border:.5px solid var(--border);border-radius:7px;
+  color:var(--white);font-size:13px;padding:8px 10px;outline:none;
+  font-family:'Inter',sans-serif;text-align:center}
+.pop-log-inp:focus{border-color:rgba(15,122,68,.42)}
+.pop-log-save{background:var(--green);color:var(--on-green);border:none;border-radius:7px;
+  font-size:13px;font-weight:600;padding:8px 14px;cursor:pointer;font-family:'Inter',sans-serif}
+.ei-wakt-strip{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap}
+
+/* ── BULK ACTIVITY FILL (prayer popup) ── */
+.bulk-acts{margin-top:6px}
+.bulk-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.bulk-wakt-badge{font-size:11px;background:var(--green-dim);color:var(--green);
+  border:.5px solid rgba(15,122,68,.28);border-radius:6px;padding:4px 11px;font-weight:500}
+.bulk-quick{display:flex;gap:5px}
+.bulk-quick-btn{font-size:10px;background:transparent;border:.5px solid var(--border);
+  border-radius:5px;color:var(--muted);padding:4px 9px;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:border-color .18s,color .18s}
+.bulk-quick-btn:hover{border-color:var(--green);color:var(--green)}
+.bulk-act-row{background:var(--bg3);border:.5px solid var(--border);border-radius:7px;
+  padding:6px 9px;margin-bottom:4px;display:flex;align-items:center;gap:8px;
+  transition:border-color .18s,background .18s}
+.bulk-act-row.filled{border-color:var(--green);background:var(--green-dim)}
+.bulk-act-icon{font-size:14px;flex-shrink:0}
+.bulk-act-body{flex:1;min-width:0}
+.bulk-act-name{font-size:12px;font-weight:500;color:var(--white);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bulk-act-meta{font-size:9px;color:var(--muted);margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bulk-act-meta b{color:var(--green);font-weight:600}
+.bulk-act-inp{width:52px;background:var(--bg2);border:.5px solid var(--border);
+  border-radius:6px;color:var(--white);font-size:12px;padding:4px 6px;outline:none;
+  font-family:'Inter',sans-serif;text-align:center;font-weight:500;flex-shrink:0;
+  transition:border-color .18s}
+.bulk-act-inp:focus{border-color:var(--green)}
+.bulk-act-inp::-webkit-outer-spin-button,
+.bulk-act-inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.bulk-act-unit{font-size:9px;color:var(--muted2);min-width:30px;flex-shrink:0}
+.bulk-save-btn{width:100%;background:var(--green);color:var(--on-green);border:none;
+  border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'Inter',sans-serif;margin-top:6px;transition:background .2s}
+.bulk-save-btn:hover{background:#0d6b3b}
+.bulk-empty{font-size:12px;color:var(--muted2);text-align:center;padding:18px;
+  border:.5px dashed var(--border);border-radius:9px}
+
+/* ══ PROGRESS DASHBOARD ══ */
+.dash{margin-bottom:16px}
+.dash-main{background:var(--bg2);border:.5px solid var(--border);border-radius:12px;
+  padding:16px;display:flex;align-items:center;gap:18px;margin-bottom:8px}
+.ring-wrap{position:relative;flex-shrink:0;width:104px;height:104px}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;pointer-events:none}
+.ring-pct{font-size:26px;font-weight:500;color:var(--white);line-height:1}
+.ring-pct span{font-size:13px;color:var(--muted);font-weight:400}
+.ring-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.dash-stats{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dstat{background:var(--bg3);border-radius:8px;padding:8px 10px}
+.dstat-v{font-size:17px;font-weight:500;color:var(--green);line-height:1.1}
+.dstat-v span{font-size:11px;color:var(--muted);font-weight:400}
+.dstat-l{font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.03em}
+
+.dash-split{display:flex;gap:8px;margin-bottom:8px}
+.split-item{flex:1;background:var(--bg2);border:.5px solid var(--border);
+  border-radius:10px;padding:10px 12px}
+.split-top{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--muted);margin-bottom:6px}
+.split-top b{color:var(--white);font-weight:600;font-size:12px}
+.split-bar{height:4px;background:rgba(26,36,32,.06);border-radius:2px;overflow:hidden}
+.split-fill{height:100%;background:var(--green);border-radius:2px;transition:width .6s ease}
+.split-fill.gold{background:var(--gold)}
+
+.dash-cats{background:var(--bg2);border:.5px solid var(--border);
+  border-radius:10px;padding:10px 12px;margin-bottom:8px;
+  display:flex;flex-direction:column;gap:8px}
+.cat-prog-row{display:flex;align-items:center;gap:9px}
+.cat-prog-icon{font-size:14px;flex-shrink:0}
+.cat-prog-body{flex:1;min-width:0}
+.cat-prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.cat-prog-name{font-size:11px;color:var(--white)}
+.cat-prog-val{font-size:10px;color:var(--muted)}
+.cat-prog-bar{height:3px;background:rgba(26,36,32,.06);border-radius:2px;overflow:hidden}
+.cat-prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .6s ease}
+.cat-prog-score{font-size:11px;font-weight:600;color:var(--gold);
+  min-width:26px;text-align:right;flex-shrink:0}
+
+.dash-week{background:var(--bg2);border:.5px solid var(--border);
+  border-radius:10px;padding:12px}
+.wk-head{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--muted);margin-bottom:10px}
+.wk-meta{font-size:9px;color:var(--muted2)}
+.wk-bars{display:flex;gap:5px;height:58px;align-items:flex-end}
+.wk-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
+.wk-bar-track{flex:1;width:100%;background:rgba(26,36,32,.05);
+  border-radius:4px;display:flex;align-items:flex-end;overflow:hidden}
+.wk-bar-fill{width:100%;background:var(--green-d);border-radius:4px;
+  transition:height .6s ease;min-height:3px}
+.wk-bar-fill.today{background:var(--green);box-shadow:0 0 8px rgba(15,122,68,.32)}
+.wk-lbl{font-size:9px;color:var(--muted2)}
+.wk-lbl.today{color:var(--green);font-weight:600}
+
+/* ══ HISTORY ══ */
+.hist-day{background:var(--bg2);border:.5px solid var(--border);border-radius:11px;
+  padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.hist-day:hover{border-color:rgba(15,122,68,.32)}
+.hist-day.today{border-color:var(--green);background:var(--green-dim)}
+.hist-day-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hist-date{font-size:13px;font-weight:500;color:var(--white)}
+.hist-today-tag{font-size:9px;background:var(--green);color:var(--on-green);
+  border-radius:4px;padding:1px 6px;margin-left:5px;font-weight:600}
+.hist-score{font-size:15px;font-weight:500;color:var(--gold)}
+.hist-score span{font-size:11px;color:var(--muted);font-weight:400}
+.hist-bar{height:4px;background:rgba(26,36,32,.06);border-radius:2px;
+  overflow:hidden;margin-bottom:7px}
+.hist-bar-fill{height:100%;background:var(--green);border-radius:2px;transition:width .6s}
+.hist-meta{display:flex;gap:12px;font-size:10px;color:var(--muted)}
+.hist-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+.hist-chip{font-size:9px;background:var(--bg3);border:.5px solid var(--border);
+  border-radius:4px;padding:2px 6px;color:var(--muted)}
+.hist-detail{margin-top:10px;padding-top:10px;border-top:.5px solid var(--border)}
+.hist-sec-lbl{font-size:9px;color:var(--green);letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:5px}
+.hist-row{display:flex;align-items:center;gap:8px;font-size:11px;
+  color:var(--muted);padding:3px 0}
+.hist-row span:first-child{flex:1;color:var(--white);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.hist-row-tags{font-size:10px;color:var(--muted2);white-space:nowrap}
+.hist-row b{color:var(--gold);font-weight:600;min-width:26px;text-align:right}
+
+/* ══ REPORT ══ */
+.rep-periods{display:flex;gap:5px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.rep-periods::-webkit-scrollbar{display:none}
+.rep-per-btn{flex-shrink:0;font-size:11px;padding:6px 13px;border-radius:7px;
+  border:.5px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
+.rep-per-btn:hover{border-color:rgba(15,122,68,.32);color:var(--white)}
+.rep-per-btn.active{background:var(--green-dim);border-color:var(--green);color:var(--green);font-weight:500}
+
+.rep-custom{background:var(--bg2);border:.5px solid var(--border);
+  border-radius:10px;padding:12px;margin-bottom:12px}
+.rep-date-row{display:flex;gap:10px}
+.rep-date-item{flex:1;display:flex;flex-direction:column;gap:4px}
+.rep-date-item label{font-size:9px;color:var(--green);letter-spacing:.1em;text-transform:uppercase}
+.rep-date-inp{background:var(--bg3);border:.5px solid var(--border);border-radius:7px;
+  color:var(--white);font-size:12px;padding:7px 10px;outline:none;
+  font-family:'Inter',sans-serif;width:100%}
+.rep-date-inp:focus{border-color:var(--green)}
+
+.rep-summary{background:var(--bg2);border:.5px solid var(--border);
+  border-radius:12px;padding:16px;margin-bottom:9px}
+.rep-sum-main{text-align:center;margin-bottom:14px}
+.rep-sum-score{font-size:34px;font-weight:300;color:var(--gold);line-height:1}
+.rep-sum-lbl{font-size:11px;color:var(--muted);margin-top:4px}
+.rep-sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.rep-sum-item{background:var(--bg3);border-radius:8px;padding:8px 6px;text-align:center}
+.rep-sum-item b{display:block;font-size:15px;font-weight:500;color:var(--green)}
+.rep-sum-item span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+
+.rep-split{display:flex;gap:8px;margin-bottom:9px}
+.rep-split-item{flex:1;background:var(--bg2);border:.5px solid var(--border);
+  border-radius:10px;padding:11px 13px}
+.rep-split-top{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--muted);margin-bottom:6px}
+.rep-split-top b{color:var(--gold);font-size:14px;font-weight:600}
+.rep-split-sub{font-size:9px;color:var(--muted2);margin-top:5px}
+
+.rep-card{background:var(--bg2);border:.5px solid var(--border);
+  border-radius:11px;padding:13px;margin-bottom:9px}
+.rep-card-hd{font-size:11px;color:var(--white);font-weight:500;margin-bottom:11px;
+  display:flex;justify-content:space-between;align-items:center}
+.rep-card-hd span{font-size:9px;color:var(--muted);font-weight:400}
+
+.rep-bars{display:flex;gap:2px;height:70px;align-items:flex-end;overflow-x:auto;scrollbar-width:none}
+.rep-bars::-webkit-scrollbar{display:none}
+.rep-bar-col{flex:1;min-width:11px;display:flex;flex-direction:column;
+  align-items:center;gap:4px;height:100%}
+.rep-bar-track{flex:1;width:100%;background:rgba(26,36,32,.05);
+  border-radius:3px;display:flex;align-items:flex-end;overflow:hidden}
+.rep-bar-fill{width:100%;background:var(--green);border-radius:3px;
+  transition:height .6s ease;min-height:2px}
+.rep-bar-lbl{font-size:8px;color:var(--muted2)}
+
+.rep-pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.rep-pstat{background:var(--bg3);border-radius:8px;padding:9px 7px;text-align:center}
+.rep-pstat b{display:block;font-size:17px;font-weight:500;color:var(--white);line-height:1.1}
+.rep-pstat span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+.rep-pstat i{display:block;font-size:9px;color:var(--green);font-style:normal;margin-top:2px}
+
+.rep-acts{display:flex;flex-direction:column;gap:9px}
+.rep-act-row{display:flex;align-items:center;gap:9px}
+.rep-act-icon{font-size:15px;flex-shrink:0}
+.rep-act-body{flex:1;min-width:0}
+.rep-act-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.rep-act-name{font-size:11px;color:var(--white);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.rep-act-done{font-size:10px;color:var(--green);font-weight:500;white-space:nowrap;margin-left:8px}
+.rep-act-bar{height:3px;background:rgba(26,36,32,.06);border-radius:2px;overflow:hidden}
+.rep-act-fill{height:100%;background:var(--green);border-radius:2px;transition:width .6s}
+.rep-act-meta{font-size:9px;color:var(--muted2);margin-top:3px}
+.rep-act-score{font-size:12px;font-weight:600;color:var(--gold);
+  min-width:32px;text-align:right;flex-shrink:0}
+
+.rep-table-wrap{overflow-x:auto;scrollbar-width:none;max-height:340px;overflow-y:auto}
+.rep-table-wrap::-webkit-scrollbar{width:3px;height:3px}
+.rep-table-wrap::-webkit-scrollbar-thumb{background:var(--green-dim);border-radius:2px}
+.rep-table{width:100%;border-collapse:collapse;font-size:11px}
+.rep-table th{text-align:left;font-size:9px;color:var(--green);
+  letter-spacing:.08em;text-transform:uppercase;font-weight:500;
+  padding:6px 8px;border-bottom:.5px solid var(--border);
+  position:sticky;top:0;background:var(--bg2)}
+.rep-table td{padding:7px 8px;color:var(--muted);border-bottom:.5px solid rgba(15,122,68,.05)}
+.rep-table td:first-child{color:var(--white)}
+.rep-table .tc{text-align:center}
+.rep-table .gold{color:var(--gold);font-weight:600}
+.rep-table tbody tr:hover td{background:rgba(15,122,68,.04)}
+
+.rep-export-row{display:flex;gap:8px;margin-top:14px;margin-bottom:8px}
+.rep-export-btn{flex:1;background:var(--green);color:var(--on-green);border:none;
+  border-radius:9px;padding:12px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s}
+.rep-export-btn:hover{background:#0d6b3b}
+.rep-export-btn.alt{background:var(--bg2);color:var(--green);
+  border:.5px solid var(--green)}
+.rep-export-btn.alt:hover{background:var(--green-dim)}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);
+  background:var(--green-dim);border:.5px solid var(--green);border-radius:9px;
+  padding:9px 18px;font-size:12px;color:var(--green);z-index:300;
+  transition:transform .3s ease;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* SCORE STYLES */
+.score-bar-wrap{background:var(--bg2);border:.5px solid var(--border);border-radius:11px;
+  padding:14px 16px;margin-bottom:14px}
+.score-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.score-title{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.score-total{font-size:22px;font-weight:500;color:var(--gold)}
+.score-total span{font-size:12px;color:var(--muted);font-weight:400}
+.score-segments{display:flex;gap:3px;height:6px;border-radius:3px;overflow:hidden;margin-bottom:8px}
+.score-seg{height:100%;border-radius:2px;transition:flex .5s ease}
+.score-breakdown{display:flex;gap:10px;flex-wrap:wrap}
+.score-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.score-dot{width:8px;height:8px;border-radius:50%}
+.ei-score{font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;flex-shrink:0;
+  background:rgba(160,124,40,.12);color:var(--gold);border:.5px solid var(--border-g)}
+.ei-score.earned{background:rgba(15,122,68,.1);color:var(--green);border:.5px solid rgba(15,122,68,.22)}
+.ei-score.missed{background:rgba(178,59,59,.09);color:var(--red);border:.5px solid rgba(178,59,59,.12)}
+.pop-score-box{background:var(--green-dim);border:.5px solid rgba(15,122,68,.28);
+  border-radius:9px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.pop-score-label{font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.pop-score-val{font-size:24px;font-weight:400;color:var(--gold)}
+.pop-score-max{font-size:11px;color:var(--muted)}
+.score-rule{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;
+  padding:6px 0;border-bottom:.5px solid var(--border)}
+.score-rule:last-child{border-bottom:none}
+.score-rule-pts{font-weight:600;color:var(--white)}
+
+/* START SCREEN */
+.start-wrap{padding:28px 20px;max-width:520px;margin:0 auto;text-align:center}
+.start-ar{font-family:'Amiri',serif;font-size:30px;color:var(--gold-l);direction:rtl;margin:18px 0 2px}
+.start-tr{font-size:10px;color:var(--muted);letter-spacing:.06em;margin-bottom:22px}
+.start-h{font-size:22px;font-weight:400;margin-bottom:6px}
+.start-p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px}
+.start-card{background:var(--bg2);border:.5px solid var(--border);border-radius:12px;padding:6px 14px;margin-bottom:16px;text-align:left}
+.start-row{display:flex;justify-content:space-between;font-size:12px;padding:9px 0;border-bottom:.5px solid var(--border);color:var(--muted)}
+.start-row:last-child{border-bottom:none}
+.start-row b{font-weight:500;color:var(--white)}
+.link-btn{background:none;border:none;color:var(--green);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px;padding:6px}
+
+/* WAKT CARDS (home) */
+.ei-prayer-wrap{margin-bottom:8px}
+.ei-prayer-wrap.wv-now{border-color:var(--green);box-shadow:0 0 0 1px rgba(15,122,68,.2)}
+.ei-prayer-wrap.wv-future .ei-prayer-top{opacity:.8}
+.wv-badge{font-size:8px;background:var(--green);color:var(--on-green);border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:600;letter-spacing:.06em;vertical-align:middle}
+.wv-range{font-size:10px;color:var(--muted)}
+.wv-list{border-top:.5px solid var(--border);padding:6px 8px;display:flex;flex-direction:column;gap:4px;background:rgba(26,36,32,.03)}
+.wa-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg2);border:.5px solid var(--border);border-radius:7px;cursor:pointer}
+.wa-row.st-done{opacity:.55}
+.wa-row.st-skip{opacity:.35}
+.wa-chk{width:16px;height:16px;border-radius:50%;border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:var(--green)}
+.wa-row.st-done .wa-chk{background:var(--green);color:var(--on-green);border-color:var(--green)}
+.wa-ic{font-size:14px;flex-shrink:0}
+.wa-body{flex:1;min-width:0}
+.wa-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-bar{height:3px;background:rgba(15,122,68,.1);border-radius:2px;overflow:hidden;margin-top:3px}
+.wa-bar div{height:100%;background:var(--green);border-radius:2px}
+.wa-val{font-size:10px;color:var(--muted);white-space:nowrap}
+.wv-empty{font-size:11px;color:var(--muted2);padding:6px 12px 0}
+.wv-foot{padding:6px 8px 8px}
+.wv-plan-btn{width:100%;background:transparent;border:.5px dashed var(--border);border-radius:7px;color:var(--green);font-size:11px;padding:7px;cursor:pointer;font-family:'Inter',sans-serif;transition:background .18s}
+.wv-plan-btn:hover{background:var(--green-dim)}
+.ib-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.ib-plan{background:var(--green);color:var(--on-green);border:none;border-radius:7px;font-size:11px;font-weight:600;padding:6px 10px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+
+/* PLANNER extras + ALARMS */
+.plan-btns{display:flex;gap:8px;margin-top:6px}
+.plan-ghost{flex:1;background:transparent;border:.5px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;padding:11px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
+.plan-ghost:hover{border-color:var(--green);color:var(--green)}
+.set-save.alt{background:var(--bg2);color:var(--green);border:.5px solid var(--green)}
+.set-save.alt:hover{background:var(--green-dim)}
+.alarm-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.alarm-btn{background:var(--green-dim);color:var(--green);border:.5px solid var(--green);border-radius:7px;font-size:11px;font-weight:600;padding:6px 10px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+.tg-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:.5px solid var(--border);border-radius:9px;margin-bottom:8px}
+.tg-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);flex-shrink:0}
+.tg-body{flex:1;min-width:0}
+.tg-title{font-size:13px;font-weight:500}
+.tg-min{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.alarm-btns{display:flex;gap:5px}
+.rep-view-btn{flex-shrink:0;font-size:12px;padding:7px 14px;border-radius:7px;border:.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
+.rep-view-btn:hover{border-color:rgba(15,122,68,.32);color:var(--white)}
+.rep-view-btn.active{background:var(--green);border-color:var(--green);color:var(--on-green);font-weight:600}
+.rep-lbl{font-size:9px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin:2px 0 6px}
+.rep-grp{cursor:pointer;transition:border-color .18s}
+.rep-grp:hover{border-color:rgba(15,122,68,.4)}
+.rep-grp-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rep-grp-ic{font-size:22px}
+.rep-grp-name{font-size:13px;font-weight:500}
+.rep-grp-sub{font-size:10px;color:var(--muted)}
+.rep-grp-score{margin-left:auto;text-align:right;font-size:18px;font-weight:500;color:var(--gold)}
+.rep-grp-score span{display:block;font-size:10px;color:var(--muted);font-weight:400}
+</style>
+</head>
+<body>
+
+<!-- ══ EXEC SCREEN ══ -->
+<div id="s-exec" class="screen active">
+  <div class="topbar">
+    <div class="logo" onclick="goHome()">
+      <div class="logo-mark">☽</div>
+      <div><div class="logo-name">Rakeeb</div><span class="logo-ar">رَقِيب</span></div>
+    </div>
+    <div class="tb-center">
+      <b id="exec-iv-lbl">—</b>
+      <span id="exec-date-lbl"></span>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="icon-btn" onclick="showScreen('s-report')" title="Report">📋</button>
+      <button class="icon-btn" onclick="showScreen('s-history')" title="History">📊</button>
+      <button class="icon-btn" onclick="showScreen('s-settings')" title="Settings">⚙</button>
+    </div>
+  </div>
+  <div class="scroll-body">
+    <div class="exec-wrap">
+      <div class="prayer-strip" id="prayer-strip"></div>
+      <div class="interval-banner">
+        <div>
+          <div class="ib-label">Current wakt</div>
+          <div class="ib-name" id="ban-iv">—</div>
+          <div class="ib-next" id="ban-next"></div>
+        </div>
+        <div class="ib-right">
+          <div class="ib-cd" id="ban-cd">—</div>
+          <button class="ib-plan" id="ban-plan" style="display:none"></button>
+        </div>
+      </div>
+      <div class="exec-prog" id="exec-prog" style="display:none">
+        <div class="prog-top">
+          <span class="prog-lbl">Today's progress</span>
+          <span class="prog-val" id="prog-val">0 / 0</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div id="score-bar-slot"></div>
+      <div id="exec-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ START DAY SCREEN ══ -->
+<div id="s-start" class="screen">
+  <div class="topbar">
+    <div class="logo" onclick="goHome()">
+      <div class="logo-mark">☽</div>
+      <div><div class="logo-name">Rakeeb</div><span class="logo-ar">رَقِيب</span></div>
+    </div>
+    <div class="tb-center"><b>New day</b><span id="start-date"></span></div>
+    <button class="icon-btn" onclick="showScreen('s-settings')">⚙</button>
+  </div>
+  <div class="scroll-body">
+    <div class="start-wrap">
+      <div class="start-ar">بِسْمِ اللَّهِ</div>
+      <div class="start-tr">In the name of Allah</div>
+      <div class="start-h">Start your day</div>
+      <div class="start-p" id="start-sub"></div>
+      <div class="start-card">
+        <div class="start-row"><span>Day starts</span><b id="start-r1">—</b></div>
+        <div class="start-row"><span>Right now</span><b id="start-r2">—</b></div>
+        <div class="start-row"><span>Current wakt</span><b id="start-r3">—</b></div>
+      </div>
+      <button class="plan-submit" id="start-btn" onclick="startDay()">Start day →</button>
+      <button class="link-btn" onclick="showScreen('s-settings')">⚙ Change when the day starts · set wakt alarms</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WAKT PLANNER SCREEN ══ -->
+<div id="s-plan" class="screen">
+  <div class="topbar">
+    <div class="logo" onclick="goHome()">
+      <div class="logo-mark">☽</div>
+      <div><div class="logo-name">Rakeeb</div><span class="logo-ar">رَقِيب</span></div>
+    </div>
+    <div class="tb-center">
+      <b id="plan-mode-lbl">Wakt plan</b>
+      <span id="plan-date-lbl"></span>
+    </div>
+    <button class="icon-btn" onclick="goHome()">✕</button>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:18px">
+      <div class="plan-intro">
+        <h2>Plan this <em>wakt</em></h2>
+        <p id="plan-sub"></p>
+      </div>
+
+      <div class="plan-sec">
+        <div class="plan-sec-hd">🕌 Salah</div>
+        <div class="plan-prayer-list" id="plan-prayers" style="justify-content:center"></div>
+      </div>
+
+      <div class="plan-sec">
+        <div class="plan-sec-hd">⚡ Activities</div>
+        <div class="cat-selector" id="cat-selector"></div>
+        <div id="cat-sections"></div>
+      </div>
+
+      <div class="plan-sec">
+        <div class="plan-sec-hd">✏️ Custom</div>
+        <div id="custom-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button class="cat-add-btn" style="margin-top:8px" onclick="openItemForm('custom')">+ Add custom activity</button>
+      </div>
+
+      <div class="plan-btns">
+        <button class="plan-ghost" onclick="copyPrevWakt()">↺ Same as earlier wakt</button>
+        <button class="plan-ghost" onclick="skipWaktPlan()">Skip this wakt</button>
+      </div>
+      <button class="plan-submit" onclick="saveWaktPlan()">Save wakt plan →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REPORT SCREEN ══ -->
+<div id="s-report" class="screen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="tb-center"><b>Report</b><span id="rep-range-lbl"></span></div>
+    <button class="icon-btn" onclick="exportReportCSV()" title="Export">⬇</button>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:16px">
+
+      <!-- period selector -->
+      <div class="rep-periods" id="rep-views">
+        <button class="rep-view-btn active" data-view="overall" onclick="setReportView('overall')">Overall</button>
+        <button class="rep-view-btn" data-view="groups" onclick="setReportView('groups')">Groups</button>
+        <button class="rep-view-btn" data-view="activities" onclick="setReportView('activities')">Activities</button>
+        <button class="rep-view-btn" data-view="salah" onclick="setReportView('salah')">Salah</button>
+        <button class="rep-view-btn" data-view="daily" onclick="setReportView('daily')">Daily</button>
+      </div>
+
+      <div class="rep-periods" id="rep-periods">
+        <button class="rep-per-btn" data-per="today" onclick="setReportPeriod('today')">Today</button>
+        <button class="rep-per-btn" data-per="week" onclick="setReportPeriod('week')">7 days</button>
+        <button class="rep-per-btn active" data-per="month" onclick="setReportPeriod('month')">30 days</button>
+        <button class="rep-per-btn" data-per="q90" onclick="setReportPeriod('q90')">90 days</button>
+        <button class="rep-per-btn" data-per="year" onclick="setReportPeriod('year')">Year</button>
+        <button class="rep-per-btn" data-per="all" onclick="setReportPeriod('all')">All</button>
+        <button class="rep-per-btn" data-per="custom" onclick="setReportPeriod('custom')">Custom</button>
+      </div>
+
+      <div class="rep-custom" id="rep-custom" style="display:none">
+        <div class="rep-date-row">
+          <div class="rep-date-item">
+            <label>From</label>
+            <input type="date" id="rep-from" class="rep-date-inp" onchange="renderReport()">
+          </div>
+          <div class="rep-date-item">
+            <label>To</label>
+            <input type="date" id="rep-to" class="rep-date-inp" onchange="renderReport()">
+          </div>
+        </div>
+      </div>
+
+      <div id="rep-body"></div>
+
+      <div class="rep-export-row">
+        <button class="rep-export-btn" onclick="exportReportCSV()">⬇ Export CSV (Excel)</button>
+        <button class="rep-export-btn alt" onclick="exportDetailCSV()">⬇ Detailed CSV</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HISTORY SCREEN ══ -->
+<div id="s-history" class="screen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="tb-center"><b>History</b><span id="hist-count"></span></div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:18px" id="hist-body"></div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS SCREEN ══ -->
+<div id="s-settings" class="screen">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goHome()">←</button>
+    <div class="tb-center"><b>Settings</b></div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:18px">
+      <div class="set-sec">
+        <div class="set-sec-hd">Start of day</div>
+        <div class="set-card">
+          <div class="set-lbl">When does your day start?</div>
+          <div class="set-desc">You start each day with one tap. After that you plan every wakt on its own, when its alarm rings.</div>
+          <div class="dm-cards">
+            <div class="dm-card" id="dm-maghrib" onclick="setDayMode('maghrib')">
+              <div class="dm-icon">🌆</div>
+              <div class="dm-name">Maghrib</div>
+              <div class="dm-ar">مَغْرِب</div>
+              <div class="dm-desc">Start day after sunset prayer</div>
+            </div>
+            <div class="dm-card" id="dm-subh" onclick="setDayMode('subh')">
+              <div class="dm-icon">🌅</div>
+              <div class="dm-name">Subh / Fajr</div>
+              <div class="dm-ar">صُبْح</div>
+              <div class="dm-desc">Start day after dawn prayer</div>
+            </div>
+            <div class="dm-card" id="dm-custom" onclick="setDayMode('custom')">
+              <div class="dm-icon">⏰</div>
+              <div class="dm-name">Fixed time</div>
+              <div class="dm-ar">وَقْت</div>
+              <div class="dm-desc">Choose your own start time</div>
+            </div>
+          </div>
+          <div class="pt-row" id="dm-custom-row">
+            <div><div class="pt-name">Day starts at</div><div class="pt-ar">بِدَايَة الْيَوْم</div></div>
+            <input class="pt-inp" type="time" id="set-day-end" onchange="setDayEnd(this.value)">
+          </div>
+        </div>
+      </div>
+      <div class="set-sec">
+        <div class="set-sec-hd">Auto-plan</div>
+        <div class="set-card">
+          <label class="tg-row" style="margin-bottom:0">
+            <input type="checkbox" id="set-autoplan" onchange="S.autoPlan=this.checked">
+            <div class="tg-body"><div class="tg-title">🔁 Auto-plan if I forget</div>
+              <div class="tg-min">After <input class="pt-inp" style="width:56px" type="number" min="1" max="120" id="set-autoplan-min" onchange="S.autoPlanMin=Math.max(1,parseInt(this.value)||15)"> minutes, copy the plan from my last same prayer</div></div>
+          </label>
+        </div>
+      </div>
+      <div class="set-sec">
+        <div class="set-sec-hd">Prayer times</div>
+        <div class="pt-list" id="set-pt-list"></div>
+      </div>
+      <div class="set-sec">
+        <div class="set-sec-hd">Wakt alarms</div>
+        <div class="set-card">
+          <div class="set-lbl">A phone alarm at every wakt</div>
+          <div class="set-desc">When an alarm rings, open Rakeeb and it asks you to plan that wakt. A web app cannot create alarms on its own, so set them once here.</div>
+          <label class="tg-row">
+            <input type="checkbox" id="set-alarm-azan" onchange="S.alarmAzan=this.checked;renderAlarmList()">
+            <div class="tg-body"><div class="tg-title">⏰ Alarm at azan time</div>
+              <div class="alarm-sub">Rings exactly when each prayer time starts</div></div>
+          </label>
+          <label class="tg-row">
+            <input type="checkbox" id="set-alarm-plan" onchange="S.alarmPlan=this.checked;renderAlarmList()">
+            <div class="tg-body"><div class="tg-title">📝 Plan reminder after azan</div>
+              <div class="tg-min">Ring <input class="pt-inp" style="width:56px" type="number" min="1" max="120" id="set-alarm-planmin" onchange="S.alarmPlanMin=Math.max(1,parseInt(this.value)||10);renderAlarmList()"> minutes after azan</div></div>
+          </label>
+          <div class="pt-list" id="alarm-list" style="margin-bottom:10px"></div>
+          <button class="set-save" id="ics-btn" onclick="downloadAlarmICS()">⬇ Calendar alarms (.ics) — daily, iPhone &amp; Android</button>
+          <button class="set-save alt" id="notif-btn" onclick="askNotif()">🔔 Also notify me while the app is open</button>
+          <button class="set-save" id="native-test" style="display:none" onclick="testNativeAlarm()">🔔 Test alarm in 10 seconds</button>
+        </div>
+      </div>
+      <div class="set-sec">
+        <div class="set-sec-hd">Activity scores</div>
+        <div class="set-card">
+          <div class="set-lbl">Points for each category</div>
+          <div class="set-desc">"Start" is earned when you begin an activity; "Full" when you reach its target (in between is proportional). You can also give a single activity its own points from its ✏️ edit form.</div>
+          <div class="pt-list" id="score-cfg-list"></div>
+          <button class="set-save alt" onclick="resetScoreCfg()">Reset to default scores</button>
+        </div>
+      </div>
+      <div class="set-sec">
+        <div class="set-sec-hd">Salah score breakdown</div>
+        <div class="set-card">
+          <div class="set-lbl">How prayer points are calculated</div>
+          <div class="score-rule"><span>🕌 Mosque</span><span class="score-rule-pts">+50</span></div>
+          <div class="score-rule"><span>🏠 Home / Work</span><span class="score-rule-pts">+20</span></div>
+          <div class="score-rule"><span>👥 Jamaath</span><span class="score-rule-pts">+40</span></div>
+          <div class="score-rule"><span>✅ On time</span><span class="score-rule-pts">+50</span></div>
+          <div class="score-rule"><span>⏰ Late</span><span class="score-rule-pts">+15</span></div>
+          <div class="score-rule"><span>❌ Qadha</span><span class="score-rule-pts">+5</span></div>
+          <div class="score-rule"><span>✖ Missed</span><span class="score-rule-pts">+0</span></div>
+          <div class="score-rule"><span>🟢 High Khushu</span><span class="score-rule-pts">+30</span></div>
+          <div class="score-rule"><span>🟡 Medium Khushu</span><span class="score-rule-pts">+15</span></div>
+          <div class="score-rule"><span>🔴 Low Khushu</span><span class="score-rule-pts">+5</span></div>
+        </div>
+      </div>
+      <div class="set-sec" id="set-account">
+        <div class="set-sec-hd">Account</div>
+
+        <div class="set-card">
+          <div class="set-lbl">Signed in with Google</div>
+          <div class="set-desc">Your plans, logs and history are saved to your account and synced on every device.</div>
+          <button class="set-save" style="margin-top:12px" onclick="signOut()">Sign out</button>
+        </div>
+      </div>
+      <button class="set-save" onclick="saveSettings()">Save settings ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ POPUP ══ -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="popup" id="popup">
+    <div class="pop-handle"></div>
+    <div class="pop-icon" id="pop-icon"></div>
+    <div class="pop-name" id="pop-name"></div>
+    <div class="pop-status" id="pop-status"></div>
+    <div id="pop-body"></div>
+    <textarea class="pop-remark" id="pop-remark" rows="2" placeholder="Add a remark…"></textarea>
+    <div class="pop-actions" id="pop-actions"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════
+// CATEGORY & ACTIVITY DEFINITIONS
+// ══════════════════════════════
+const CATEGORIES = [
+  {
+    id:'dhikr', icon:'📿', name:'Dhikr',
+    items:[
+      {id:'d1',icon:'📿',name:'Astaghfirullah',unit:'times',default:'100'},
+      {id:'d2',icon:'📿',name:'Subhanallah',unit:'times',default:'100'},
+      {id:'d3',icon:'📿',name:'Alhamdulillah',unit:'times',default:'100'},
+      {id:'d4',icon:'📿',name:'Allahu Akbar',unit:'times',default:'100'},
+      {id:'d5',icon:'📿',name:'La ilaha illallah',unit:'times',default:'100'},
+      {id:'d6',icon:'🌸',name:'Salawat ﷺ',unit:'times',default:'100'},
+      {id:'d7',icon:'🌅',name:'Morning Adhkar',unit:'set',default:'1'},
+      {id:'d8',icon:'🌆',name:'Evening Adhkar',unit:'set',default:'1'},
+    ]
+  },
+  {
+    id:'quran', icon:'📖', name:'Quran',
+    items:[
+      {id:'q1',icon:'📖',name:'Recitation',unit:'pages',default:''},
+      {id:'q2',icon:'🎧',name:'Listening',unit:'minutes',default:''},
+      {id:'q3',icon:'💭',name:'Tafsir study',unit:'pages',default:''},
+      {id:'q4',icon:'📝',name:'Memorisation',unit:'verses',default:''},
+      {id:'q5',icon:'🔁',name:'Revision',unit:'pages',default:''},
+    ]
+  },
+  {
+    id:'health', icon:'🏃', name:'Health',
+    items:[
+      {id:'h1',icon:'🏃',name:'Running',unit:'km',default:''},
+      {id:'h2',icon:'🚶',name:'Walking',unit:'minutes',default:''},
+      {id:'h3',icon:'💪',name:'Push-ups',unit:'reps',default:''},
+      {id:'h4',icon:'🧘',name:'Plank',unit:'seconds',default:''},
+      {id:'h5',icon:'🏋️',name:'Gym workout',unit:'minutes',default:''},
+      {id:'h6',icon:'🚴',name:'Cycling',unit:'km',default:''},
+      {id:'h7',icon:'💧',name:'Water intake',unit:'glasses',default:'8'},
+      {id:'h8',icon:'😴',name:'Sleep target',unit:'hours',default:'7'},
+      {id:'h9',icon:'🍎',name:'Healthy diet',unit:'meals',default:'3'},
+    ]
+  },
+  {
+    id:'academics', icon:'🎓', name:'Academics',
+    items:[
+      {id:'a1',icon:'📚',name:'Study session',unit:'hours',default:''},
+      {id:'a2',icon:'📄',name:'Research reading',unit:'pages',default:''},
+      {id:'a3',icon:'✍️',name:'Writing / thesis',unit:'words',default:''},
+      {id:'a4',icon:'🗒️',name:'Notes / review',unit:'hours',default:''},
+      {id:'a5',icon:'📊',name:'Data analysis',unit:'hours',default:''},
+      {id:'a6',icon:'🎒',name:'Assignment',unit:'tasks',default:''},
+      {id:'a7',icon:'💻',name:'Coding',unit:'hours',default:''},
+      {id:'a8',icon:'🌐',name:'Arabic learning',unit:'minutes',default:''},
+    ]
+  },
+  {
+    id:'family', icon:'👨‍👩‍👦', name:'Family',
+    items:[
+      {id:'f1',icon:'🤲',name:'Time with parents',unit:'minutes',default:''},
+      {id:'f2',icon:'📞',name:'Call parents',unit:'times',default:'1'},
+      {id:'f3',icon:'👶',name:'Time with children',unit:'minutes',default:''},
+      {id:'f4',icon:'🏠',name:'Help with home',unit:'tasks',default:''},
+      {id:'f5',icon:'🤝',name:'Visit relatives',unit:'visits',default:''},
+    ]
+  },
+  {
+    id:'charity', icon:'🤲', name:'Charity',
+    items:[
+      {id:'c1',icon:'💰',name:'Sadaqah',unit:'amount',default:''},
+      {id:'c2',icon:'😊',name:'Smile (Sunnah)',unit:'times',default:''},
+      {id:'c3',icon:'🆘',name:'Help someone',unit:'times',default:''},
+      {id:'c4',icon:'📖',name:'Teach / share knowledge',unit:'minutes',default:''},
+      {id:'c5',icon:'🌱',name:'Volunteer',unit:'hours',default:''},
+    ]
+  },
+  {
+    id:'haram', icon:'🛡️', name:'Haram avoidance',
+    items:[
+      {id:'hr1',icon:'👁️',name:'Lower the gaze',unit:'day',default:'1'},
+      {id:'hr2',icon:'🤐',name:'No backbiting',unit:'day',default:'1'},
+      {id:'hr3',icon:'🚫',name:'No music',unit:'day',default:'1'},
+      {id:'hr4',icon:'📵',name:'No unnecessary scrolling',unit:'hours max',default:'1'},
+      {id:'hr5',icon:'😤',name:'Control anger',unit:'day',default:'1'},
+      {id:'hr6',icon:'🗣️',name:'No lying',unit:'day',default:'1'},
+      {id:'hr7',icon:'🚬',name:'No smoking',unit:'day',default:'1'},
+    ]
+  },
+];
+
+// Pristine copy of the shipped activity library — user edits are re-applied on top of this
+// every boot, so renamed / added / deleted activities persist day after day.
+const BASE_CATEGORIES = JSON.parse(JSON.stringify(CATEGORIES));
+
+const PRAYERS = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+const P_AR = {Fajr:'الفجر',Dhuhr:'الظهر',Asr:'العصر',Maghrib:'المغرب',Isha:'العشاء'};
+
+// ══ STATE ══
+function defaultState(){
+  return {
+    dayMode:'maghrib',
+    dayEnd:'22:00',
+    alarmAzan:true, alarmPlan:false, alarmPlanMin:10, scoreCfg:{},
+    autoPlan:true, autoPlanMin:15, lastWaktPlans:{},
+    pt:{Fajr:'5:14 AM',Dhuhr:'12:32 PM',Asr:'3:45 PM',Maghrib:'6:48 PM',Isha:'8:15 PM'},
+    plan:[], exec:{}, lastPlanDate:'', wPlanned:{},
+    prayerLog:{}, prayerPlan:{}, history:{},
+    // Persistent activity library customisations
+    lib:{edits:{}, added:{}, deleted:[]},
+    customItems:[],
+  };
+}
+// Old saved times had no AM/PM (e.g. "3:45" for Asr) — make them unambiguous.
+function normalizePT(){
+  if(!S.pt) S.pt={};
+  const def=defaultState().pt;
+  PRAYERS.forEach(p=>{
+    let str=String(S.pt[p]||def[p]).trim();
+    if(!/am|pm/i.test(str)){
+      const parts=str.split(':'); const h=parseInt(parts[0])||0, m=parseInt(parts[1])||0;
+      const ap=p==='Fajr'?'AM':(p==='Dhuhr'?((h>=6&&h<12)?'AM':'PM'):'PM');
+      str=h+':'+String(m).padStart(2,'0')+' '+ap;
+    }
+    S.pt[p]=str;
+  });
+}
+// Offline cache only — the source of truth is the signed-in user's cloud record.
+function cachedState(){
+  try{ const raw=localStorage.getItem('rakeebState'); return raw?JSON.parse(raw):null }catch{ return null }
+}
+let S = Object.assign(defaultState(), cachedState()||{});
+normalizePT();
+
+// Rebuild CATEGORIES from the shipped base + the user's saved edits/additions/deletions.
+function applyLib(){
+  if(!S.lib) S.lib={edits:{},added:{},deleted:[]};
+  S.lib.edits=S.lib.edits||{}; S.lib.added=S.lib.added||{}; S.lib.deleted=S.lib.deleted||[];
+  if(!Array.isArray(S.customItems)) S.customItems=[];
+  const del=new Set(S.lib.deleted);
+  CATEGORIES.forEach(cat=>{
+    const base=BASE_CATEGORIES.find(c=>c.id===cat.id);
+    const items=JSON.parse(JSON.stringify(base?base.items:[]));
+    (S.lib.added[cat.id]||[]).forEach(it=>items.push(Object.assign({},it,{catId:cat.id})));
+    cat.items=items
+      .filter(it=>!del.has(it.id))
+      .map(it=>Object.assign(it, S.lib.edits[it.id]||{}));
+  });
+  S.customItems=S.customItems.filter(it=>!del.has(it.id))
+    .map(it=>Object.assign({}, it, S.lib.edits[it.id]||{}));
+  customItems=S.customItems;
+}
+
+let openCats=new Set();
+let picks={};    // itemId → {val, picked}
+let customItems=[];
+let currentPopItem=null;
+
+// ══ TIME ══
+function pMin(str){
+  let[h,rest]=str.split(':'), m=parseInt(rest); h=parseInt(h);
+  if(/pm/i.test(str)&&h!==12)h+=12;
+  if(/am/i.test(str)&&h===12)h=0;
+  return h*60+m;
+}
+function now24(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+function fmtCd(sec){
+  if(sec<=0)return'0:00';
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  if(h>0)return`${h}h ${m}m`;
+  return`${m}:${s.toString().padStart(2,'0')}`;
+}
+function dStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function todayStr(){return dStr(new Date())}
+function addDays(key,n){ const d=new Date(key+'T00:00:00'); d.setDate(d.getDate()+n); return dStr(d); }
+function currentWaktName(){
+  const t=now24(), mins=PRAYERS.map(p=>pMin(S.pt[p]));
+  for(let i=4;i>=0;i--) if(t>=mins[i]) return PRAYERS[i];
+  return 'Isha';   // after midnight, before Fajr
+}
+function waktLabel(p){ const i=PRAYERS.indexOf(p); return p+' → '+PRAYERS[(i+1)%5]; }
+// Wakts in the order they happen inside one day (Maghrib mode: Maghrib, Isha, Fajr, Dhuhr, Asr)
+function dayOrder(){
+  const end=dayEndMin();
+  let st=PRAYERS.findIndex(p=>pMin(S.pt[p])>=end); if(st<0) st=0;
+  return PRAYERS.slice(st).concat(PRAYERS.slice(0,st));
+}
+function waktActs(p){ return S.plan.filter(it=>it.type!=='prayer'&&it.wakt===p); }
+function prayerItems(){
+  return PRAYERS.map(p=>({id:'prayer-'+p,type:'prayer',icon:'🕌',name:p+' prayer',prayer:p,unit:'',val:'',catId:'prayer'}));
+}
+// The day-key of the CURRENT planning cycle.
+// Maghrib mode: a new cycle begins at Maghrib and belongs to the next date.
+// Fajr mode: a new cycle begins at Fajr and belongs to that date.
+// Minute-of-day when the current day ENDS and the next planning cycle begins.
+function dayEndMin(){
+  if(S.dayMode==='subh') return pMin(S.pt.Fajr);
+  if(S.dayMode==='custom'){
+    const parts=String(S.dayEnd||'22:00').split(':');
+    return (parseInt(parts[0])||0)*60+(parseInt(parts[1])||0);
+  }
+  return pMin(S.pt.Maghrib);
+}
+function dayEndLabel(){
+  if(S.dayMode==='subh') return 'Subh / Fajr ('+S.pt.Fajr+')';
+  if(S.dayMode==='custom') return fmtAMPM(String(S.dayEnd||'22:00'));
+  return 'Maghrib ('+S.pt.Maghrib+')';
+}
+function cycleKey(){
+  const t=now24(), d=new Date(), end=dayEndMin();
+  if(S.dayMode==='subh'){ if(t<end) d.setDate(d.getDate()-1); }
+  else { if(t>=end) d.setDate(d.getDate()+1); }
+  return dStr(d);
+}
+function isNearPlanTime(){
+  return Math.abs(now24()-dayEndMin())<=20;
+}
+function hasPlan(){return S.lastPlanDate===cycleKey()&&S.plan.length>0}
+// When the trigger prayer comes around again, archive the finished day and
+// clear it so the planner opens fresh — every single day.
+function checkRollover(){
+  const ck=cycleKey();
+  if(S.lastPlanDate && S.lastPlanDate!==ck){
+    if(S.plan.length) recordToday(S.lastPlanDate);
+    S.plan=[]; S.exec={}; S.prayerLog={}; S.prayerPlan={}; S.wPlanned={}; S.lastPlanDate='';
+    picks={};
+    saveState();
+    return true;
+  }
+  return false;
+}
+
+// ══ SCREENS ══
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='s-exec')renderExec();
+  if(id==='s-start')renderStart();
+  if(id==='s-plan')renderPlanner();
+  if(id==='s-settings')renderSettings();
+  if(id==='s-history')renderHistory();
+  if(id==='s-report')renderReport();
+}
+function goHome(){ checkRollover(); showScreen(hasPlan()?'s-exec':'s-start'); }
+function routeHome(){
+  checkRollover();
+  autoPlanDue();
+  if(!hasPlan()) showScreen('s-start');
+  else { showScreen('s-exec'); maybePromptPlan(); }
+}
+
+// ══ START DAY ══
+function renderStart(){
+  const m=S.dayMode, now=new Date();
+  document.getElementById('start-date').textContent=now.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('start-sub').textContent=
+    m==='maghrib'?'The Islamic day begins at Maghrib. Start it, then plan each wakt when its alarm rings.':
+    m==='subh'?'Your day begins at Fajr. Start it, then plan each wakt when its alarm rings.':
+    'Start your day, then plan each wakt when its alarm rings.';
+  document.getElementById('start-r1').textContent=dayEndLabel();
+  document.getElementById('start-r2').textContent=fmtAMPM(now.getHours()+':'+now.getMinutes());
+  document.getElementById('start-r3').textContent=waktLabel(currentWaktName());
+  document.getElementById('start-btn').textContent=m==='maghrib'?'Start day after Maghrib →':'Start day →';
+}
+function startDay(){
+  S.plan=prayerItems(); S.exec={}; S.prayerLog={}; S.prayerPlan={}; S.wPlanned={};
+  S.lastPlanDate=cycleKey();
+  saveState();
+  showToast('Day started. Bismillah 🤲');
+  autoPlanDue();
+  showScreen('s-exec');
+  maybePromptPlan(true);
+}
+
+// ══ AUTO-PLAN (forgot to plan a wakt) ══
+function waktElapsed(p){ let d=now24()-pMin(S.pt[p]); if(d<0) d+=1440; return d; }
+function autoPlanDue(){
+  if(S.autoPlan===false || !hasPlan()) return [];
+  const min=parseInt(S.autoPlanMin)||15, order=dayOrder(), cur=order.indexOf(currentWaktName());
+  const del=new Set((S.lib&&S.lib.deleted)||[]), done=[];
+  order.forEach((p,idx)=>{
+    if(S.wPlanned[p]) return;
+    if(!(idx<cur || (idx===cur && waktElapsed(p)>=min))) return;
+    if(planWakt===p && document.getElementById('s-plan').classList.contains('active')) return;  // still planning it
+    const items=((S.lastWaktPlans&&S.lastWaktPlans[p])||[]).filter(t=>!del.has(t.baseId));
+    if(!items.length) return;
+    items.forEach(t=>{
+      const id=t.baseId+'@'+p;
+      if(!S.plan.some(x=>x.id===id)) S.plan.push(Object.assign({},t,{id,type:t.catId,wakt:p}));
+    });
+    S.wPlanned[p]='auto'; done.push(p);
+  });
+  if(done.length) saveState();
+  return done;
+}
+function runAutoPlan(){
+  const done=autoPlanDue();
+  if(!done.length) return done;
+  const msg=done.join(', ')+' auto-planned from your last '+(done.length>1?'plans':'plan');
+  showToast('🔁 '+msg);
+  if('Notification' in window && Notification.permission==='granted'){ try{ new Notification('Rakeeb',{body:msg}); }catch(e){} }
+  const execActive=document.getElementById('s-exec').classList.contains('active');
+  const popupOpen=document.getElementById('overlay').classList.contains('open');
+  if(execActive && !popupOpen) renderExec();
+  return done;
+}
+
+// ══ PLAN PROMPT (each wakt) ══
+let planWakt=null, promptedKey='', lastWakt=null;
+function openWaktPlanner(p){ planWakt=p||currentWaktName(); showScreen('s-plan'); }
+function maybePromptPlan(force){
+  if(!hasPlan()) return;
+  const w=currentWaktName();
+  if(S.wPlanned[w]) return;
+  const key=S.lastPlanDate+'|'+w;
+  if(!force && promptedKey===key) return;
+  promptedKey=key;
+  openWaktPlanner(w);
+}
+
+// ══ EXEC ══
+function renderExec(){
+  renderStrip(); renderBanner(); renderExecBody(); updateProg();
+}
+function renderStrip(){
+  const t=now24(), strip=document.getElementById('prayer-strip');
+  strip.innerHTML='';
+  PRAYERS.forEach((p,i)=>{
+    const pm=pMin(S.pt[p]), nx=i<4?pMin(S.pt[PRAYERS[i+1]]):24*60;
+    let cls='',dot='○',dc='mt';
+    if(t>=pm&&t<nx){cls='p-now';dot='●';dc='gn';}
+    else if(t>=nx){cls='p-done';dot='✓';dc='gn';}
+    const log=S.prayerLog[p]||{};
+    const badge=log.ontime?'✅':log.late?'⏰':log.qadha?'❌':log.missed?'✖':'';
+    strip.innerHTML+=`
+    <div class="p-pill ${cls}" onclick="if(hasPlan())openWaktPlanner('${p}')">
+      <div class="p-name">${p}</div>
+      <div class="p-time">${S.pt[p]}</div>
+      <div class="p-dot ${dc}">${badge||dot}</div>
+    </div>`;
+  });
+}
+function getInterval(){
+  const t=now24(), mins=PRAYERS.map(p=>pMin(S.pt[p]));
+  for(let i=0;i<4;i++) if(t>=mins[i]&&t<mins[i+1])
+    return{from:PRAYERS[i],to:PRAYERS[i+1],toMin:mins[i+1]};
+  if(t>=mins[4]) return{from:'Isha',to:'Fajr',toMin:mins[0]+24*60};
+  return{from:'Isha',to:'Fajr',toMin:mins[0]};   // after midnight, before Fajr
+}
+function renderBanner(){
+  const iv=getInterval();
+  document.getElementById('ban-iv').textContent=iv.from+' → '+iv.to;
+  document.getElementById('exec-iv-lbl').textContent=iv.from+' → '+iv.to;
+  const now=new Date();
+  document.getElementById('exec-date-lbl').textContent=
+    now.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('ban-next').textContent='Next: '+iv.to+' ('+S.pt[iv.to]+')';
+  const t=now24(), secLeft=(iv.toMin-t)*60-now.getSeconds();
+  document.getElementById('ban-cd').textContent=fmtCd(Math.max(0,secLeft));
+  const btn=document.getElementById('ban-plan');
+  if(btn){
+    if(!hasPlan()) btn.style.display='none';
+    else{
+      const cw=currentWaktName();
+      btn.style.display='';
+      btn.textContent=S.wPlanned[cw]?'✏️ Edit plan':'＋ Plan this wakt';
+      btn.onclick=()=>openWaktPlanner(cw);
+    }
+  }
+}
+function renderExecBody(){
+  const body=document.getElementById('exec-body');
+  const plan=S.plan;
+  if(!plan.length){
+    body.innerHTML=`
+    <div class="no-plan">
+      <div class="no-plan-icon">🌙</div>
+      <div class="no-plan-h">No day started</div>
+      <div class="no-plan-p">Start your day, then plan each wakt when its alarm rings.</div>
+    </div>
+    <button class="plan-submit" onclick="showScreen('s-start')">Start day →</button>`;
+    document.getElementById('exec-prog').style.display='none';
+    return;
+  }
+  document.getElementById('exec-prog').style.display='none';
+  recordToday();
+  const scoreBarEl=document.getElementById('score-bar-slot');
+  if(scoreBarEl) scoreBarEl.innerHTML=renderProgressDash();
+  const allDone=plan.every(it=>{const s=S.exec[it.id]?.status;return s==='done'||s==='skip'});
+
+  const order=dayOrder(), curIdx=order.indexOf(currentWaktName());
+  let html='<div class="sec-lbl">Wakts of this day</div>';
+  order.forEach((pName,idx)=>{
+    const pItem=plan.find(it=>it.type==='prayer'&&it.prayer===pName);
+    if(!pItem) return;
+    html+=waktCardHTML(pItem, idx+1, idx<curIdx?'past':idx===curIdx?'now':'future');
+  });
+
+  if(allDone){
+    const done=plan.filter(it=>S.exec[it.id]?.status==='done').length;
+    const skip=plan.filter(it=>S.exec[it.id]?.status==='skip').length;
+    html+=`<div class="finish-block">
+      <div class="fin-ar">الْحَمْدُ لِلَّهِ</div>
+      <div class="fin-tr">All praise is due to Allah</div>
+      <div class="fin-h">Day complete!</div>
+      <div class="fin-p">JazakAllahu Khairan. Your next day can be started after its start time.</div>
+      <div class="fin-stats">
+        <div class="f-stat"><div class="f-sv">${done}</div><div class="f-sl">Done</div></div>
+        <div class="f-stat"><div class="f-sv">${skip}</div><div class="f-sl">Skipped</div></div>
+        <div class="f-stat"><div class="f-sv">${plan.length}</div><div class="f-sl">Planned</div></div>
+      </div>
+    </div>`;
+  }
+  body.innerHTML=html;
+}
+
+function updateProg(){
+  const plan=S.plan; if(!plan.length)return;
+  const done=plan.filter(it=>{const s=S.exec[it.id]?.status;return s==='done'||s==='skip'}).length;
+  document.getElementById('prog-val').textContent=`${done} / ${plan.length} done`;
+  document.getElementById('prog-fill').style.width=`${Math.round(done/plan.length*100)}%`;
+}
+
+// ══ PLANNER ══
+function renderPlanner(){
+  applyLib();
+  if(!planWakt) planWakt=currentWaktName();
+  picks={}; openCats=new Set();
+  // pre-select what this wakt already has planned
+  S.plan.filter(it=>it.type!=='prayer'&&it.wakt===planWakt).forEach(it=>{
+    picks[it.baseId||it.id]={val:it.val,picked:true};
+  });
+  CATEGORIES.forEach(cat=>{ if(cat.items.some(i=>picks[i.id]&&picks[i.id].picked)) openCats.add(cat.id); });
+
+  const p=planWakt, nextP=PRAYERS[(PRAYERS.indexOf(p)+1)%5];
+  document.getElementById('plan-mode-lbl').textContent=({Fajr:'🌅',Dhuhr:'🌤',Asr:'☀️',Maghrib:'🌆',Isha:'🌙'})[p]+' '+p+' wakt';
+  document.getElementById('plan-date-lbl').textContent=S.pt[p]+' → '+S.pt[nextP];
+  document.getElementById('plan-sub').textContent=
+    'Choose what you will do between '+p+' and '+nextP+'. Everything you add here belongs to this wakt only.';
+
+  renderPlanPrayer();
+  const cs=document.getElementById('cat-selector'); cs.innerHTML='';
+  CATEGORIES.forEach(cat=>{
+    cs.innerHTML+=`<button class="cat-btn" id="catbtn-${cat.id}" onclick="toggleCat('${cat.id}')">${cat.icon} ${cat.name}</button>`;
+  });
+  renderSections();
+  renderCustomList();
+}
+function renderPlanPrayer(){
+  const p=planWakt, pl=S.prayerPlan[p]||{};
+  const has=!!(pl.loc||pl.jamaath||pl.timing||pl.khushu);
+  const ic={Fajr:'🌅',Dhuhr:'🌤',Asr:'☀️',Maghrib:'🌆',Isha:'🌙'}[p];
+  document.getElementById('plan-prayers').innerHTML=`
+    <div class="ppr-simple" style="flex:0 0 auto;min-width:110px" onclick="openPrayerPlanPopup('${p}')">
+      <div class="ppr-circle${has?' planned':''}">${ic}${has?'<div class="ppr-plan-dot"></div>':''}</div>
+      <div class="ppr-name">${p} intention</div>
+      <div class="ppr-time">${S.pt[p]}</div>
+    </div>`;
+}
+
+function toggleCat(catId){
+  if(openCats.has(catId)) openCats.delete(catId); else openCats.add(catId);
+  renderSections();
+}
+function renderSections(){
+  const container=document.getElementById('cat-sections'); container.innerHTML='';
+  CATEGORIES.forEach(cat=>{ if(openCats.has(cat.id)) container.appendChild(buildCatSection(cat)); });
+  CATEGORIES.forEach(cat=>{
+    const b=document.getElementById('catbtn-'+cat.id);
+    if(b) b.classList.toggle('open',openCats.has(cat.id));
+  });
+}
+
+function buildCatSection(cat){
+  const catId=cat.id;
+  const div=document.createElement('div');
+  div.className='act-section'; div.id='catsec-'+catId;
+  let itemsHTML='';
+  cat.items.forEach(item=>{
+    if(!picks[item.id]) picks[item.id]={val:item.default||'',picked:false};
+    itemsHTML+=buildActRowHTML(item, picks[item.id], catId);
+  });
+  div.innerHTML=`
+  <div class="act-sec-head">
+    <div class="act-sec-icon">${cat.icon}</div>
+    <div class="act-sec-name">${cat.name}</div>
+    <button class="act-sec-toggle" onclick="toggleCat('${catId}')">✕</button>
+  </div>
+  <div class="act-items" id="items-${catId}">${itemsHTML}
+    <button class="cat-add-btn" onclick="openItemForm('${catId}')">+ Add activity</button>
+  </div>`;
+  return div;
+}
+
+function buildActRowHTML(item, p, catId){
+  const isNum=['times','reps','verses','pages','tasks','glasses','words','km','minutes','hours','seconds','meals','visits','set','amount'].includes(item.unit);
+  return `
+  <div class="act-row-wrap" id="wrap-${item.id}">
+    <div class="act-row${p.picked?' picked':''}" id="ar-${item.id}" onclick="togglePick('${item.id}','${item.default||''}')">
+      <div class="act-chk" id="ac-${item.id}">${p.picked?'✓':''}</div>
+      <div class="act-icon2">${item.icon}</div>
+      <div class="act-lbl">${item.name}</div>
+      <div class="act-inline" onclick="event.stopPropagation()">
+        <input class="val-input" id="vi-${item.id}" type="${isNum?'number':'text'}"
+          value="${p.val}" placeholder="0" style="display:${p.picked?'block':'none'}"
+          onchange="picks['${item.id}'].val=this.value">
+        <span class="act-unit-lbl">${item.unit}</span>
+        <button class="act-edit-btn" onclick="openItemForm('${catId}','${item.id}')" title="Edit">✏️</button>
+        <button class="act-del-btn" onclick="confirmDeleteItem('${catId}','${item.id}')" title="Delete">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Prayer card with activity strip at bottom
+// One card per wakt: the prayer row on top, that wakt's own planned activities below it
+function waktCardHTML(it, num, state){
+  const p=it.prayer;
+  const st=S.exec[it.id]?.status||'pending';
+  let wrapCls='wv-'+state;
+  if(st==='done') wrapCls+=' st-done';
+  else if(st==='skip') wrapCls+=' st-skip';
+
+  const {score,max}=calcPrayerScore(p);
+  const scCls=st==='done'?'earned':st==='skip'?'missed':'';
+  const nextP=PRAYERS[(PRAYERS.indexOf(p)+1)%5];
+  const topHTML=`
+    <div class="ei-num" style="${st==='done'?'background:var(--green);color:var(--on-green);border-color:var(--green);font-size:12px':''}">${st==='done'?'✓':st==='skip'?'⏭':num}</div>
+    <div class="ei-icon">🕌</div>
+    <div class="ei-body">
+      <div class="ei-name">${it.name}${state==='now'?'<span class="wv-badge">NOW</span>':''}</div>
+      <div class="ei-meta">${S.pt[p]} → ${S.pt[nextP]} · ${nextP==='Fajr'?'until Fajr':'until '+nextP}</div>
+    </div>
+    <div class="ei-score ${scCls}">${score}<span style="font-size:9px;opacity:.7">/${max}</span></div>
+    <div class="ei-arr">›</div>`;
+
+  const acts=waktActs(p);
+  let listHTML='';
+  if(acts.length){
+    listHTML='<div class="wv-list">'+acts.map(a=>{
+      const ex=S.exec[a.id]||{};
+      const logs=ex.logs||[];
+      const tot=logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+      const tgt=parseFloat(a.val)||0;
+      const ast=ex.status||'pending';
+      const cls=ast==='done'?'st-done':ast==='skip'?'st-skip':'';
+      const pct=tgt>0?Math.min(100,Math.round(tot/tgt*100)):(tot>0?100:0);
+      const valTxt=tgt>0?`${tot}/${a.val} ${a.unit||''}`:(tot>0?`${tot} ${a.unit||''}`:(a.unit||'—'));
+      return `<div class="wa-row ${cls}" onclick="openActFromExec('${a.id}')">
+        <div class="wa-chk">${ast==='done'?'✓':ast==='skip'?'⏭':''}</div>
+        <div class="wa-ic">${a.icon}</div>
+        <div class="wa-body"><div class="wa-name">${a.name}</div><div class="wa-bar"><div style="width:${pct}%"></div></div></div>
+        <div class="wa-val">${valTxt}</div>
+      </div>`;
+    }).join('')+'</div>';
+  } else {
+    listHTML=`<div class="wv-empty">${S.wPlanned[p]==='skip'?'Planning skipped for this wakt':'Not planned yet'}</div>`;
+  }
+  if(S.wPlanned[p]==='auto') listHTML=`<div class="wv-empty">🔁 Auto-planned from your last ${p} plan</div>`+listHTML;
+  const foot=`<div class="wv-foot"><button class="wv-plan-btn" onclick="openWaktPlanner('${p}')">${acts.length?'✏️ Edit wakt plan':'＋ Plan this wakt'}</button></div>`;
+
+  return `
+  <div class="ei-prayer-wrap ${wrapCls}" id="eirow-${it.id}">
+    <div class="ei-prayer-top" onclick="openPrayerFromExec('${p}')">${topHTML}</div>
+    ${listHTML}
+    ${foot}
+  </div>`;
+}
+
+function openActFromExec(itemId){
+  const item=S.plan.find(it=>it.id===itemId);
+  if(item) openPopup(item);
+}
+
+
+
+function togglePick(itemId, def){
+  if(!picks[itemId]) picks[itemId]={val:def||'',picked:false};
+  picks[itemId].picked=!picks[itemId].picked;
+  const row=document.getElementById('ar-'+itemId);
+  const chk=document.getElementById('ac-'+itemId);
+  const vi=document.getElementById('vi-'+itemId);
+  row.classList.toggle('picked',picks[itemId].picked);
+  chk.textContent=picks[itemId].picked?'✓':'';
+  if(vi){
+    vi.style.display=picks[itemId].picked?'block':'none';
+    if(picks[itemId].picked && !vi.value) vi.value=def||'';
+    picks[itemId].val=vi.value;
+  }
+}
+
+
+function renderCustomList(){
+  const cl=document.getElementById('custom-list');
+  if(!customItems.length){ cl.innerHTML='<div style="font-size:11px;color:var(--muted2)">No custom activities yet.</div>'; return; }
+  cl.innerHTML=customItems.map(it=>{
+    if(!picks[it.id]) picks[it.id]={val:it.default||'',picked:false};
+    return buildActRowHTML(it, picks[it.id], 'custom');
+  }).join('');
+}
+
+// ══ ITEM CREATE / EDIT / DELETE ══
+const ITEM_ICONS=['📿','📖','🏃','🎓','🤲','💰','🛡️','✏️','⏰','💪','🧘','🚴','💧','😴','📚','✍️','🗒️','📊','💻','🌐','📞','🤝','🌸','🌅','🌆','🎧','💭','📝','🔁','🏋️','🍎','🌱','😊','🆘','👁️','🤐','🚫','📵','😤','🗣️','🚬','⭐','🔥','🌟'];
+let editingItem=null; // {catId, itemId} or null for new
+
+function openItemForm(catId, itemId){
+  editingItem={catId, itemId:itemId||null};
+  const isEdit=!!itemId;
+  let item=null;
+  if(isEdit){
+    if(catId==='custom') item=customItems.find(i=>i.id===itemId);
+    else{ const cat=CATEGORIES.find(c=>c.id===catId); item=cat?.items.find(i=>i.id===itemId); }
+  }
+  const catName=catId==='custom'?'Custom':CATEGORIES.find(c=>c.id===catId)?.name||catId;
+  const selIcon=item?.icon||'⭐';
+
+  document.getElementById('pop-icon').textContent=isEdit?item.icon:'➕';
+  document.getElementById('pop-name').textContent=isEdit?'Edit activity':'New activity';
+  document.getElementById('pop-status').textContent=(isEdit?'Editing in ':'Adding to ')+catName;
+
+  const iconBtns=ITEM_ICONS.map(ic=>`<div class="icon-opt${ic===selIcon?' sel':''}" onclick="selectIcon(this,'${ic}')">${ic}</div>`).join('');
+
+  document.getElementById('pop-body').innerHTML=`
+    <div class="item-form">
+      <div class="item-form-row">
+        <div class="item-form-label">Icon</div>
+        <div class="icon-picker" id="icon-picker">${iconBtns}</div>
+        <input type="hidden" id="form-icon" value="${selIcon}">
+      </div>
+      <div class="item-form-row">
+        <div class="item-form-label">Activity name</div>
+        <input class="item-form-input" id="form-name" placeholder="e.g. Morning walk" value="${item?.name||''}">
+      </div>
+      <div class="item-form-row">
+        <div class="item-form-label">Unit (what you measure)</div>
+        <input class="item-form-input" id="form-unit" placeholder="e.g. minutes, reps, pages, km…" value="${item?.unit||''}">
+      </div>
+      <div class="item-form-row">
+        <div class="item-form-label">Default target value</div>
+        <input class="item-form-input" id="form-default" type="text" placeholder="e.g. 30" value="${item?.default||''}">
+      </div>
+      <div class="item-form-row">
+        <div class="item-form-label">Points for reaching the target</div>
+        <input class="item-form-input" id="form-points" type="number" min="1" placeholder="Default: ${actCfg(catId==='custom'?'custom':catId).max} (category score)" value="${item?.points||''}">
+      </div>
+    </div>`;
+
+  document.getElementById('pop-remark').style.display='none';
+  document.getElementById('pop-actions').innerHTML=`
+    <button class="pop-btn pb-done" onclick="saveItemForm()">Save ✓</button>
+    ${isEdit?`<button class="pop-btn pb-skip" onclick="confirmDeleteItem('${catId}','${itemId}')">Delete 🗑</button>`:''}
+    <button class="pop-btn pb-close" onclick="closeItemForm()">Cancel</button>`;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function selectIcon(el, icon){
+  document.getElementById('form-icon').value=icon;
+  document.querySelectorAll('.icon-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function saveItemForm(){
+  const icon=document.getElementById('form-icon').value;
+  const name=document.getElementById('form-name').value.trim();
+  const unit=document.getElementById('form-unit').value.trim();
+  const def=document.getElementById('form-default').value.trim();
+  const points=document.getElementById('form-points').value.trim();
+  if(!name){showToast('Please enter a name');return;}
+
+  const {catId,itemId}=editingItem;
+  if(!S.lib) S.lib={edits:{},added:{},deleted:[]};
+  if(itemId){
+    // Edit existing — remembered permanently so tomorrow's planner shows the new name
+    S.lib.edits[itemId]={icon,name,unit,default:def,points};
+    if(catId==='custom'){
+      const it=S.customItems.find(i=>i.id===itemId);
+      if(it){it.icon=icon;it.name=name;it.unit=unit;it.default=def;it.points=points;}
+    } else {
+      const cat=CATEGORIES.find(c=>c.id===catId);
+      const it=cat?.items.find(i=>i.id===itemId);
+      if(it){it.icon=icon;it.name=name;it.unit=unit;it.default=def;it.points=points;}
+      const added=(S.lib.added[catId]||[]).find(i=>i.id===itemId);
+      if(added){added.icon=icon;added.name=name;added.unit=unit;added.default=def;added.points=points;}
+    }
+    // keep today's plan in sync too
+    (S.plan||[]).forEach(p=>{ if(p.baseId===itemId||p.id===itemId){p.icon=icon;p.name=name;p.unit=unit;p.points=points;} });
+    saveState();
+    showToast('Activity updated ✓');
+  } else {
+    // New item — stored in the library so it comes back every day
+    const newId=(catId==='custom'?'custom':'item')+'-'+Date.now();
+    const newItem={id:newId,icon,name,unit,default:def,catId,points};
+    picks[newId]={val:def,picked:true};
+    if(catId==='custom'){
+      S.customItems.push(newItem);
+      customItems=S.customItems;
+    } else {
+      S.lib.added[catId]=(S.lib.added[catId]||[]).concat([newItem]);
+      const cat=CATEGORIES.find(c=>c.id===catId);
+      if(cat) cat.items.push(newItem);
+    }
+    saveState();
+    showToast('Activity added ✓');
+  }
+  closeItemForm();
+  // re-render affected section
+  if(catId==='custom') renderCustomList();
+  else{ openCats.add(catId); renderSections(); }
+}
+
+function confirmDeleteItem(catId, itemId){
+  // show confirm inside popup
+  const name=catId==='custom'
+    ? customItems.find(i=>i.id===itemId)?.name
+    : CATEGORIES.find(c=>c.id===catId)?.items.find(i=>i.id===itemId)?.name;
+  document.getElementById('pop-icon').textContent='🗑';
+  document.getElementById('pop-name').textContent='Delete activity?';
+  document.getElementById('pop-status').textContent='This cannot be undone';
+  document.getElementById('pop-body').innerHTML=`
+    <div class="del-confirm">
+      <p>Remove <b style="color:var(--white)">"${name||'this activity'}"</b> from the list?</p>
+      <div class="del-confirm-btns">
+        <button class="del-yes" onclick="deleteItem('${catId}','${itemId}')">Yes, delete</button>
+        <button class="del-no" onclick="closeItemForm()">Cancel</button>
+      </div>
+    </div>`;
+  document.getElementById('pop-remark').style.display='none';
+  document.getElementById('pop-actions').innerHTML='';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function deleteItem(catId, itemId){
+  if(!S.lib) S.lib={edits:{},added:{},deleted:[]};
+  if(!S.lib.deleted.includes(itemId)) S.lib.deleted.push(itemId);
+  if(catId==='custom'){
+    S.customItems=S.customItems.filter(i=>i.id!==itemId);
+    customItems=S.customItems;
+    renderCustomList();
+  } else {
+    const cat=CATEGORIES.find(c=>c.id===catId);
+    if(cat) cat.items=cat.items.filter(i=>i.id!==itemId);
+    delete picks[itemId];
+    openCats.add(catId);
+    renderSections();
+  }
+  saveState();
+  closeItemForm();
+  showToast('Activity deleted');
+}
+
+function closeItemForm(){
+  document.getElementById('pop-remark').style.display='';
+  closePopup();
+  editingItem=null;
+}
+
+function saveWaktPlan(){
+  if(!hasPlan()){ goHome(); return; }
+  const wk=planWakt;
+  const others=S.plan.filter(it=>!(it.type!=='prayer'&&it.wakt===wk));
+  const existing=S.plan.filter(it=>it.type!=='prayer'&&it.wakt===wk);
+  const lib=[];
+  CATEGORIES.forEach(cat=>cat.items.forEach(i=>lib.push(Object.assign({},i,{catId:cat.id}))));
+  customItems.forEach(i=>lib.push(Object.assign({},i,{catId:'custom'})));
+  const fresh=[];
+  lib.forEach(item=>{
+    const pk=picks[item.id];
+    if(!pk||!pk.picked) return;
+    const vi=document.getElementById('vi-'+item.id);
+    const val=vi?vi.value:pk.val;
+    fresh.push({id:item.id+'@'+wk, baseId:item.id, type:item.catId, wakt:wk, icon:item.icon, name:item.name,
+      unit:item.unit, val:val||'', catId:item.catId, points:item.points||''});
+  });
+  // never lose activities that already have logged progress
+  let kept=0;
+  existing.forEach(it=>{
+    if(!fresh.some(f=>f.id===it.id) && ((S.exec[it.id]?.logs)||[]).length>0){ fresh.push(it); kept++; }
+  });
+  S.plan=others.concat(fresh);
+  S.wPlanned[wk]=true;
+  if(!S.lastWaktPlans) S.lastWaktPlans={};
+  S.lastWaktPlans[wk]=fresh.map(f=>({baseId:f.baseId||f.id,icon:f.icon,name:f.name,unit:f.unit,val:f.val,catId:f.catId,points:f.points||''}));
+  saveState();
+  showToast(fresh.length+' planned for '+wk+(kept?' ('+kept+' kept, already logged)':'')+' 🤲');
+  showScreen('s-exec');
+}
+function skipWaktPlan(){
+  if(!S.wPlanned[planWakt]) S.wPlanned[planWakt]='skip';
+  saveState();
+  goHome();
+}
+function copyPrevWakt(){
+  const order=dayOrder(), i=order.indexOf(planWakt);
+  for(let j=i-1;j>=0;j--){
+    const its=waktActs(order[j]);
+    if(!its.length) continue;
+    its.forEach(x=>{ picks[x.baseId||x.id]={val:x.val,picked:true}; });
+    CATEGORIES.forEach(cat=>{ if(cat.items.some(it=>picks[it.id]&&picks[it.id].picked)) openCats.add(cat.id); });
+    renderSections(); renderCustomList();
+    showToast('Copied from '+order[j]+' wakt');
+    return;
+  }
+  showToast('No earlier wakt has a plan yet');
+}
+
+
+// ══ POPUP ══
+function openPopup(item){
+  currentPopItem=item;
+  document.getElementById('pop-icon').textContent=item.icon;
+  document.getElementById('pop-name').textContent=item.name;
+  const st=S.exec[item.id]?.status||'pending';
+  document.getElementById('pop-status').textContent=
+    (item.wakt?waktLabel(item.wakt)+' wakt · ':'')+(st==='done'?'✅ Completed':st==='skip'?'⏭ Skipped':'Tap to mark complete or skip');
+
+  let body='';
+
+  if(item.type==='prayer'){
+    // Prayer: show all options with multi-select
+    const log=S.prayerLog[item.prayer]||{};
+    body+=`
+    <div class="pop-opts-label">Location</div>
+    <div class="pop-opts-row" id="pop-loc">
+      <button class="popt${log.mosque?' on':''}" onclick="togglePrayerOpt('${item.prayer}','mosque',this)">🕌 Mosque</button>
+      <button class="popt${log.home?' on':''}" onclick="togglePrayerOpt('${item.prayer}','home',this)">🏠 Home</button>
+      <button class="popt${log.work?' on':''}" onclick="togglePrayerOpt('${item.prayer}','work',this)">🏢 Work</button>
+      <button class="popt${log.travel?' on':''}" onclick="togglePrayerOpt('${item.prayer}','travel',this)">✈️ Travel</button>
+    </div>
+    <div class="pop-opts-label">Congregation</div>
+    <div class="pop-opts-row">
+      <button class="popt${log.jamaath?' on':''}" onclick="togglePrayerOpt('${item.prayer}','jamaath',this)">👥 Jamaath</button>
+      <button class="popt${log.alone?' on':''}" onclick="togglePrayerOpt('${item.prayer}','alone',this)">🧍 Alone</button>
+    </div>
+    <div class="pop-opts-label">Timing</div>
+    <div class="pop-opts-row">
+      <button class="popt${log.ontime?' on':''}" onclick="togglePrayerOpt('${item.prayer}','ontime',this)">✅ On time</button>
+      <button class="popt${log.late?' warn':''}" onclick="togglePrayerOpt('${item.prayer}','late',this,'warn')">⏰ Late</button>
+      <button class="popt${log.qadha?' bad':''}" onclick="togglePrayerOpt('${item.prayer}','qadha',this,'bad')">❌ Qadha</button>
+      <button class="popt${log.missed?' bad':''}" onclick="togglePrayerOpt('${item.prayer}','missed',this,'bad')">✖ Missed</button>
+    </div>
+    <div class="pop-opts-label">Khushu</div>
+    <div class="pop-opts-row">
+      <button class="popt${log.k==='high'?' on':''}" onclick="setKhushu('${item.prayer}','high',this)">🟢 High</button>
+      <button class="popt${log.k==='mid'?' on':''}" onclick="setKhushu('${item.prayer}','mid',this)">🟡 Medium</button>
+      <button class="popt${log.k==='low'?' on':''}" onclick="setKhushu('${item.prayer}','low',this)">🔴 Low</button>
+    </div>
+    <div class="pop-box">
+      <div class="pop-box-l">Prayer time</div>
+      <div class="pop-box-v">${P_AR[item.prayer]} · ${S.pt[item.prayer]}</div>
+    </div>
+
+    <div class="pop-opts-label" style="margin-top:14px">Activities of this wakt</div>
+    ${buildBulkActsHTML(item.prayer)}
+    `;
+  } else {
+    // Activity: wakt log UI
+    const execData = S.exec[item.id] || {};
+    const logs = execData.logs || [];
+    const totalDone = logs.reduce((s,l)=>s+(parseFloat(l.val)||0), 0);
+    const target = parseFloat(item.val)||0;
+    const pct = target>0 ? Math.min(Math.round(totalDone/target*100),100) : 0;
+    const cat = CATEGORIES.find(cc=>cc.id===item.catId)||{icon:'✏️',name:'Custom'};
+    const {score,max} = calcActScore(item);
+    const scCls = execData.status==='done'?'earned':execData.status==='skip'?'missed':'';
+
+    // existing logs list
+    let logsHTML = logs.length ? logs.map((l,i)=>`
+      <div class="act-log-entry">
+        <div class="act-log-wakt">${waktIcon(l.wakt)} ${l.wakt}</div>
+        <div class="act-log-val">${l.val}</div>
+        <div class="act-log-unit">${item.unit}</div>
+        <div class="act-log-time">${l.time}</div>
+        <button class="act-log-del" onclick="deleteActLog('${item.id}',${i})">✕</button>
+      </div>`).join('') : '<div style="font-size:12px;color:var(--muted2);padding:4px 0">No entries yet — add below</div>';
+
+    // wakt options
+    const waktOpts = getWaktOptions(item.wakt?waktLabel(item.wakt):null);
+
+    body += `
+    <div class="pop-score-box">
+      <div>
+        <div class="pop-score-label">Score</div>
+        <div style="font-size:10px;color:var(--muted)">${cat.icon} ${cat.name}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="pop-score-val" style="font-size:18px">${score}<span style="font-size:11px;color:var(--muted)">/${max}</span></div>
+        <div class="pop-score-max">${pct}% of target</div>
+      </div>
+    </div>
+
+    <div class="pop-box" style="margin-bottom:10px">
+      <div class="pop-box-l">Target</div>
+      <div class="pop-box-v" style="font-size:18px;font-weight:400;color:var(--white)">
+        ${item.val||'—'} <span style="font-size:12px;color:var(--muted)">${item.unit}</span>
+        ${target>0?`<span style="font-size:11px;color:${totalDone>=target?'var(--green)':'var(--muted2)'};margin-left:8px">
+          ${totalDone}/${item.val} done</span>`:''}
+      </div>
+    </div>
+
+    <div style="margin-bottom:10px">
+      <div class="pop-box-l" style="margin-bottom:6px">Log entries by Wakt</div>
+      <div id="act-logs-list">${logsHTML}</div>
+    </div>
+
+    <div class="pop-add-log">
+      <div class="pop-add-log-title">+ Add entry</div>
+      <div class="pop-log-row">
+        <select class="pop-log-select" id="log-wakt">
+          ${waktOpts.map(w=>`<option value="${w.name}" ${w.current?'selected':''}>${waktIcon(w.name)} ${w.name}</option>`).join('')}
+        </select>
+        <input class="pop-log-inp" id="log-val" type="number" placeholder="${item.unit}" min="0">
+        <button class="pop-log-save" onclick="addActLog('${item.id}','${item.unit}')">Log</button>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('pop-body').innerHTML=body;
+  document.getElementById('pop-remark').value=S.exec[item.id]?.remark||'';
+  document.getElementById('pop-remark').style.display='';
+  document.getElementById('pop-actions').innerHTML=`
+    <button class="pop-btn pb-done" onclick="markItem('done')">✓ Complete</button>
+    <button class="pop-btn pb-skip" onclick="markItem('skip')">⏭ Skip</button>
+    <button class="pop-btn pb-close" onclick="closePopup()">Close</button>`;
+  document.getElementById('overlay').classList.add('open');
+}
+
+// Prayer logging from exec strip (outside plan)
+
+
+function togglePrayerOpt(prayer,key,btn,badCls){
+  if(!S.prayerLog[prayer])S.prayerLog[prayer]={};
+  S.prayerLog[prayer][key]=!S.prayerLog[prayer][key];
+  btn.classList.toggle(badCls||'on',S.prayerLog[prayer][key]);
+  // Mosque + Jamaath can both be on — no conflict
+  saveState();
+  renderExecBody(); updateProg();
+  recordToday();
+  const sb=document.getElementById('score-bar-slot');
+  if(sb) sb.innerHTML=renderProgressDash();
+}
+function setKhushu(prayer,level,btn){
+  if(!S.prayerLog[prayer])S.prayerLog[prayer]={};
+  S.prayerLog[prayer].k=level;
+  btn.closest('.pop-opts-row').querySelectorAll('.popt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  saveState();
+}
+
+function markItem(status){
+  if(!currentPopItem)return;
+  const remark=document.getElementById('pop-remark')?.value||'';
+  if(!S.exec[currentPopItem.id]) S.exec[currentPopItem.id]={logs:[],remark:''};
+  S.exec[currentPopItem.id].status=status;
+  S.exec[currentPopItem.id].remark=remark;
+  if(currentPopItem.type==='prayer'){
+    S.prayerLog[currentPopItem.prayer]=S.prayerLog[currentPopItem.prayer]||{};
+    S.prayerLog[currentPopItem.prayer].status=status;
+  }
+  saveState(); closePopup(); renderExecBody(); updateProg();
+}
+
+// ══ PRAYER PLAN POPUP (from Planner screen) ══
+function openPrayerPlanPopup(prayer){
+  currentPopItem={id:'pplan-'+prayer, type:'prayerplan', prayer};
+  if(!S.prayerPlan[prayer]) S.prayerPlan[prayer]={};
+  const pl=S.prayerPlan[prayer];
+
+  document.getElementById('pop-icon').textContent='🕌';
+  document.getElementById('pop-name').textContent=prayer+' · '+P_AR[prayer];
+  document.getElementById('pop-status').textContent=S.pt[prayer]+' — Set your intention';
+
+  const locOpts=['Mosque','Home','Work','Travel'];
+  const locIcons={Mosque:'🕌',Home:'🏠',Work:'🏢',Travel:'✈️'};
+  const timingOpts=[{v:'On time',i:'✅'},{v:'Late',i:'⏰'},{v:'Qadha',i:'❌',bad:true},{v:'Missed',i:'✖',bad:true}];
+  const khushuOpts=[{v:'High',i:'🟢'},{v:'Medium',i:'🟡'},{v:'Low',i:'🔴'}];
+
+  let locBtns=locOpts.map(l=>`<button class="popt${pl.loc===l?' on':''}" onclick="setPrayerPlan('${prayer}','loc','${l}',this)">${locIcons[l]} ${l}</button>`).join('');
+  let timBtns=timingOpts.map(o=>`<button class="popt${pl.timing===o.v?(o.bad?' bad':' on'):''}" onclick="setPrayerPlan('${prayer}','timing','${o.v}',this,'${o.bad?'bad':'on'}')">${o.i} ${o.v}</button>`).join('');
+  let khuBtns=khushuOpts.map(o=>`<button class="popt${pl.khushu===o.v?' on':''}" onclick="setPrayerPlan('${prayer}','khushu','${o.v}',this)">${o.i} ${o.v}</button>`).join('');
+
+  document.getElementById('pop-body').innerHTML=`
+    <div class="pop-box" style="margin-bottom:14px">
+      <div class="pop-box-l">Prayer time</div>
+      <div class="pop-box-v" style="font-size:20px;font-weight:300;color:var(--green)">${S.pt[prayer]} <span style="font-family:'Amiri',serif;font-size:16px;color:var(--gold)">${P_AR[prayer]}</span></div>
+    </div>
+    <div class="pop-score-box">
+      <div>
+        <div class="pop-score-label">Prayer score</div>
+        <div style="font-size:10px;color:var(--muted)">Updates as you select below</div>
+      </div>
+      <div style="text-align:right">
+        <div class="pop-score-val" id="pray-score-val">—</div>
+        <div class="pop-score-max">/ ${PRAYER_MAX} pts</div>
+      </div>
+    </div>
+
+
+
+    <div class="pop-opts-label">Location</div>
+    <div class="pop-opts-row">${locBtns}</div>
+
+    <div class="pop-opts-label">Congregation</div>
+    <div class="pop-opts-row">
+      <button class="popt${pl.jamaath?' on':''}" onclick="togglePrayerPlanFlag('${prayer}','jamaath',this)">👥 Jamaath</button>
+      <button class="popt${pl.alone?' on':''}" onclick="togglePrayerPlanFlag('${prayer}','alone',this)">🧍 Alone</button>
+    </div>
+    <div style="font-size:10px;color:var(--muted2);margin:-6px 0 10px;padding-left:2px">Mosque + Jamaath can both be selected</div>
+
+    <div class="pop-opts-label">Timing</div>
+    <div class="pop-opts-row">${timBtns}</div>
+
+    <div class="pop-opts-label">Khushu</div>
+    <div class="pop-opts-row">${khuBtns}</div>
+
+    <div style="margin-top:10px">
+      <div class="pop-opts-label">Note</div>
+      <input id="plan-prayer-note" style="width:100%;background:var(--bg3);border:.5px solid var(--border);
+        border-radius:7px;color:var(--white);font-size:13px;padding:9px 12px;outline:none;
+        font-family:'Inter',sans-serif;" placeholder="e.g. Leave 15 min early for mosque…"
+        value="${pl.note||''}">
+    </div>`;
+
+  document.getElementById('pop-remark').style.display='none';
+  document.getElementById('pop-actions').innerHTML=`
+    <button class="pop-btn pb-done" onclick="savePrayerPlan('${prayer}')">Save ✓</button>
+    <button class="pop-btn pb-close" onclick="closePrayerPlanPopup()">Cancel</button>`;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function setPrayerPlan(prayer, key, val, btn, cls){
+  if(!S.prayerPlan[prayer]) S.prayerPlan[prayer]={};
+  S.prayerPlan[prayer][key]=val;
+  btn.closest('.pop-opts-row').querySelectorAll('.popt').forEach(b=>{
+    b.classList.remove('on','warn','bad');
+  });
+  btn.classList.add(cls||'on');
+  updateLivePrayerScore(prayer);
+  saveState();
+}
+
+function togglePrayerPlanFlag(prayer, key, btn){
+  if(!S.prayerPlan[prayer]) S.prayerPlan[prayer]={};
+  S.prayerPlan[prayer][key]=!S.prayerPlan[prayer][key];
+  btn.classList.toggle('on', S.prayerPlan[prayer][key]);
+  updateLivePrayerScore(prayer);
+  saveState();
+}
+
+function updateLivePrayerScore(prayer){
+  const el=document.getElementById('pray-score-val');
+  if(!el) return;
+  const {score}=calcPrayerScore(prayer);
+  el.textContent=score;
+}
+
+function savePrayerPlan(prayer){
+  const noteEl=document.getElementById('plan-prayer-note');
+  if(noteEl) S.prayerPlan[prayer].note=noteEl.value;
+  saveState();
+  closePrayerPlanPopup();
+  renderPlanPrayer();
+  showToast(prayer+' plan saved ✓');
+}
+
+function closePrayerPlanPopup(){
+  document.getElementById('pop-remark').style.display='';
+  closePopup();
+}
+
+// ══ REPORT SCREEN ══
+let reportPeriod='month', reportView='overall', reportGroup='all';
+
+function setReportPeriod(p){
+  reportPeriod=p;
+  document.querySelectorAll('.rep-per-btn').forEach(b=>
+    b.classList.toggle('active', b.dataset.per===p));
+  document.getElementById('rep-custom').style.display=p==='custom'?'block':'none';
+  if(p==='custom'){
+    const f=document.getElementById('rep-from'), t=document.getElementById('rep-to');
+    if(!f.value){
+      t.value=cycleKey();
+      f.value=addDays(cycleKey(),-29);
+    }
+  }
+  renderReport();
+}
+
+function getReportRange(){
+  const today=cycleKey();
+  let from, to=today, label='';
+  if(reportPeriod==='today'){ from=today; label='Today'; }
+  else if(reportPeriod==='week'){ from=addDays(today,-6); label='Last 7 days'; }
+  else if(reportPeriod==='month'){ from=addDays(today,-29); label='Last 30 days'; }
+  else if(reportPeriod==='q90'){ from=addDays(today,-89); label='Last 90 days'; }
+  else if(reportPeriod==='year'){ from=addDays(today,-364); label='Last 365 days'; }
+  else if(reportPeriod==='all'){
+    const keys=Object.keys(S.history).sort();
+    from=keys.length?keys[0]:today;
+    label='All time';
+  } else {
+    from=document.getElementById('rep-from')?.value||today;
+    to=document.getElementById('rep-to')?.value||today;
+    label='Custom';
+  }
+  return {from,to,label};
+}
+
+function getReportDays(){
+  const {from,to}=getReportRange();
+  return Object.values(S.history)
+    .filter(d=>d.date>=from && d.date<=to)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+const fmtN=n=>{ n=Math.round((n||0)*10)/10; return Number.isInteger(n)?String(n):n.toFixed(1); };
+const pcOf=(a,b)=>b>0?Math.round(a/b*100):0;
+function catInfo(id){
+  const c=CATEGORIES.find(x=>x.id===id);
+  return c?{id:c.id,icon:c.icon,name:c.name}:{id:id||'custom',icon:'✏️',name:'Custom'};
+}
+function setReportView(v){
+  reportView=v;
+  document.querySelectorAll('.rep-view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  renderReport();
+}
+function setReportGroup(g){ reportGroup=g; renderReport(); }
+function openGroupActivities(g){ reportGroup=g; setReportView('activities'); }
+
+// Totals for the chosen days: overall, per group, per activity, per prayer
+function reportAgg(days){
+  const A={days:days.length,score:0,max:0,pScore:0,pMax:0,aScore:0,aMax:0,groups:{},acts:{},prayers:{},
+           ps:{mosque:0,jamaath:0,ontime:0,late:0,qadha:0,missed:0,total:0}};
+  PRAYERS.forEach(p=>A.prayers[p]={n:0,logged:0,score:0,max:0,mosque:0,jamaath:0,ontime:0,late:0,qadha:0,missed:0});
+  days.forEach(d=>{
+    A.score+=d.score||0; A.max+=d.max||0;
+    A.pScore+=d.prayerScore||0; A.pMax+=d.prayerMax||0; A.aScore+=d.actScore||0; A.aMax+=d.actMax||0;
+    Object.entries(d.prayers||{}).forEach(([p,v])=>{
+      const t=A.prayers[p]||(A.prayers[p]={n:0,logged:0,score:0,max:0,mosque:0,jamaath:0,ontime:0,late:0,qadha:0,missed:0});
+      t.n++; if((v.score||0)>0) t.logged++; t.score+=v.score||0; t.max+=v.max||0; A.ps.total++;
+      ['mosque','jamaath','ontime','late','qadha','missed'].forEach(k=>{ if(v[k]){ t[k]++; A.ps[k]++; } });
+    });
+    (d.activities||[]).forEach(a=>{
+      const cat=a.cat||'custom';
+      const g=A.groups[cat]||(A.groups[cat]=Object.assign(catInfo(cat),{score:0,max:0,days:new Set(),acts:new Set(),entries:0}));
+      g.score+=a.score||0; g.max+=a.max||0; g.entries++; g.acts.add(a.name);
+      if((a.done||0)>0) g.days.add(d.date);
+      const key=cat+'|'+a.name;
+      const t=A.acts[key]||(A.acts[key]={name:a.name,icon:a.icon,unit:a.unit,cat,done:0,target:0,score:0,max:0,days:new Set(),count:0});
+      t.done+=a.done||0; t.target+=a.target||0; t.score+=a.score||0; t.max+=a.max||0; t.count++;
+      if((a.done||0)>0) t.days.add(d.date);
+    });
+  });
+  return A;
+}
+
+function renderReport(){
+  if(S.plan&&S.plan.length) recordToday();
+  const {from,to,label}=getReportRange();
+  const days=getReportDays();
+  document.getElementById('rep-range-lbl').textContent=label;
+  document.querySelectorAll('.rep-view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===reportView));
+  const body=document.getElementById('rep-body');
+  if(!days.length){
+    body.innerHTML='<div class="bulk-empty" style="padding:40px;margin-top:14px">No data in this period.<br><span style="font-size:11px">'+from+' → '+to+'</span></div>';
+    return;
+  }
+  const A=reportAgg(days);
+  const head=`<div class="rep-lbl">${label} · ${days.length} day${days.length!==1?'s':''} tracked</div>`;
+  const v=reportView;
+  body.innerHTML=head+(v==='groups'?repGroupsHTML(A):v==='activities'?repActivitiesHTML(A):v==='salah'?repSalahHTML(A):v==='daily'?repDailyHTML(days):repOverallHTML(A,days));
+}
+
+function repOverallHTML(A,days){
+  const pcts=days.filter(d=>d.max>0).map(d=>Math.round(d.score/d.max*100));
+  const avgPct=pcOf(A.score,A.max), bestPct=pcts.length?Math.max(...pcts):0;
+  const maxDay=Math.max(...days.map(d=>d.score),1);
+  const bars=days.slice(-31).map(d=>{
+    const h=Math.round(d.score/maxDay*100), dt=new Date(d.date+'T00:00:00');
+    return `<div class="rep-bar-col" title="${d.date}: ${d.score} pts"><div class="rep-bar-track"><div class="rep-bar-fill" style="height:${Math.max(h,2)}%"></div></div><div class="rep-bar-lbl">${dt.getDate()}</div></div>`;
+  }).join('');
+  const groups=Object.values(A.groups).sort((a,b)=>b.score-a.score);
+  const grpRows=groups.map(g=>`
+    <div class="cat-prog-row rep-grp" style="margin-bottom:9px" onclick="openGroupActivities('${g.id}')">
+      <div class="cat-prog-icon">${g.icon}</div>
+      <div class="cat-prog-body">
+        <div class="cat-prog-top"><span class="cat-prog-name">${g.name}</span><span class="cat-prog-val">${pcOf(g.score,g.max)}%</span></div>
+        <div class="cat-prog-bar"><div class="cat-prog-fill" style="width:${pcOf(g.score,g.max)}%"></div></div>
+      </div>
+      <div class="cat-prog-score">${g.score}</div>
+    </div>`).join('');
+  return `
+  <div class="rep-summary">
+    <div class="rep-sum-main"><div class="rep-sum-score">${A.score.toLocaleString()}</div><div class="rep-sum-lbl">total points of ${A.max.toLocaleString()}</div></div>
+    <div class="rep-sum-grid">
+      <div class="rep-sum-item"><b>${avgPct}%</b><span>Overall</span></div>
+      <div class="rep-sum-item"><b>${bestPct}%</b><span>Best day</span></div>
+      <div class="rep-sum-item"><b>${Math.round(A.score/A.days)}</b><span>Per day</span></div>
+      <div class="rep-sum-item"><b>${getStreak()}</b><span>Streak</span></div>
+    </div>
+  </div>
+  <div class="rep-split">
+    <div class="rep-split-item"><div class="rep-split-top"><span>🕌 Salah</span><b>${A.pScore}</b></div>
+      <div class="split-bar"><div class="split-fill gold" style="width:${pcOf(A.pScore,A.pMax)}%"></div></div>
+      <div class="rep-split-sub">${pcOf(A.pScore,A.pMax)}% of ${A.pMax}</div></div>
+    <div class="rep-split-item"><div class="rep-split-top"><span>⚡ Activities</span><b>${A.aScore}</b></div>
+      <div class="split-bar"><div class="split-fill" style="width:${pcOf(A.aScore,A.aMax)}%"></div></div>
+      <div class="rep-split-sub">${pcOf(A.aScore,A.aMax)}% of ${A.aMax}</div></div>
+  </div>
+  <div class="rep-card"><div class="rep-card-hd">Daily score trend</div><div class="rep-bars">${bars}</div></div>
+  ${grpRows?`<div class="rep-card"><div class="rep-card-hd">Groups <span>tap a group to see its activities</span></div>${grpRows}</div>`:''}`;
+}
+
+function repGroupsHTML(A){
+  const groups=Object.values(A.groups).sort((a,b)=>b.score-a.score);
+  if(!groups.length) return '<div class="bulk-empty">No activities in this period.</div>';
+  return groups.map(g=>{
+    const pc=pcOf(g.score,g.max);
+    return `<div class="rep-card rep-grp" onclick="openGroupActivities('${g.id}')">
+      <div class="rep-grp-top">
+        <div class="rep-grp-ic">${g.icon}</div>
+        <div><div class="rep-grp-name">${g.name}</div>
+          <div class="rep-grp-sub">${g.acts.size} activit${g.acts.size!==1?'ies':'y'} · active ${g.days.size} of ${A.days} days</div></div>
+        <div class="rep-grp-score">${g.score}<span>${pc}% of ${g.max}</span></div>
+      </div>
+      <div class="rep-act-bar"><div class="rep-act-fill" style="width:${pc}%"></div></div>
+    </div>`;
+  }).join('')+`<div class="rep-card"><div class="rep-grp-top" style="margin-bottom:0">
+      <div class="rep-grp-ic">🕌</div><div><div class="rep-grp-name">Salah</div><div class="rep-grp-sub">${A.ps.total} prayers recorded</div></div>
+      <div class="rep-grp-score">${A.pScore}<span>${pcOf(A.pScore,A.pMax)}% of ${A.pMax}</span></div></div></div>`;
+}
+
+function repActivitiesHTML(A){
+  const groups=Object.values(A.groups).sort((a,b)=>b.score-a.score);
+  if(reportGroup!=='all' && !A.groups[reportGroup]) reportGroup='all';
+  const chips=`<div class="cat-selector" style="margin-bottom:12px">
+    <button class="cat-btn${reportGroup==='all'?' open':''}" onclick="setReportGroup('all')">All</button>`+
+    groups.map(g=>`<button class="cat-btn${reportGroup===g.id?' open':''}" onclick="setReportGroup('${g.id}')">${g.icon} ${g.name}</button>`).join('')+'</div>';
+  const list=Object.values(A.acts).filter(t=>reportGroup==='all'||t.cat===reportGroup).sort((a,b)=>b.score-a.score);
+  if(!list.length) return chips+'<div class="bulk-empty">No activities in this period.</div>';
+  const rows=list.map(t=>{
+    const pc=pcOf(t.score,t.max), n=t.days.size, g=catInfo(t.cat);
+    return `<div class="rep-act-row">
+      <div class="rep-act-icon">${t.icon}</div>
+      <div class="rep-act-body">
+        <div class="rep-act-top"><span class="rep-act-name">${t.name}</span><span class="rep-act-done">${fmtN(t.done)}${t.unit?' '+t.unit:''}</span></div>
+        <div class="rep-act-bar"><div class="rep-act-fill" style="width:${pc}%"></div></div>
+        <div class="rep-act-meta">${reportGroup==='all'?g.icon+' '+g.name+' · ':''}${n} of ${A.days} days${n?' · avg '+fmtN(t.done/n)+' per active day':''}${t.target?' · '+pcOf(t.done,t.target)+'% of target':''}</div>
+      </div>
+      <div class="rep-act-score">${t.score}</div>
+    </div>`;
+  }).join('');
+  const tot=list.reduce((s,t)=>s+t.score,0), mx=list.reduce((s,t)=>s+t.max,0);
+  return chips+`<div class="rep-card"><div class="rep-card-hd">⚡ ${reportGroup==='all'?'All activities':catInfo(reportGroup).name} <span>${list.length} · ${tot}/${mx} pts</span></div><div class="rep-acts">${rows}</div></div>`;
+}
+
+function repSalahHTML(A){
+  const ps=A.ps, t=ps.total, pc=k=>t?Math.round(ps[k]/t*100):0;
+  const rows=PRAYERS.map(p=>{
+    const x=A.prayers[p]; if(!x||!x.n) return `<tr><td>${p}</td><td class="tc" colspan="5">—</td></tr>`;
+    return `<tr><td>${p}</td><td class="tc">${x.logged}/${x.n}</td><td class="tc">${pcOf(x.ontime,x.n)}%</td><td class="tc">${pcOf(x.mosque,x.n)}%</td><td class="tc">${pcOf(x.jamaath,x.n)}%</td><td class="tc gold">${x.score}</td></tr>`;
+  }).join('');
+  return `
+  <div class="rep-split"><div class="rep-split-item" style="flex:1"><div class="rep-split-top"><span>🕌 Salah points</span><b>${A.pScore}</b></div>
+    <div class="split-bar"><div class="split-fill gold" style="width:${pcOf(A.pScore,A.pMax)}%"></div></div>
+    <div class="rep-split-sub">${pcOf(A.pScore,A.pMax)}% of ${A.pMax}</div></div></div>
+  <div class="rep-card"><div class="rep-card-hd">Overall <span>${t} prayers</span></div>
+    <div class="rep-pgrid">
+      <div class="rep-pstat"><b>${ps.mosque}</b><span>🕌 Mosque</span><i>${pc('mosque')}%</i></div>
+      <div class="rep-pstat"><b>${ps.jamaath}</b><span>👥 Jamaath</span><i>${pc('jamaath')}%</i></div>
+      <div class="rep-pstat"><b>${ps.ontime}</b><span>✅ On time</span><i>${pc('ontime')}%</i></div>
+      <div class="rep-pstat"><b>${ps.late}</b><span>⏰ Late</span><i>${pc('late')}%</i></div>
+      <div class="rep-pstat"><b>${ps.qadha}</b><span>❌ Qadha</span><i>${pc('qadha')}%</i></div>
+      <div class="rep-pstat"><b>${ps.missed}</b><span>✖ Missed</span><i>${pc('missed')}%</i></div>
+    </div></div>
+  <div class="rep-card"><div class="rep-card-hd">Each prayer</div>
+    <div class="rep-table-wrap"><table class="rep-table">
+      <thead><tr><th>Prayer</th><th class="tc">Logged</th><th class="tc">On time</th><th class="tc">Mosque</th><th class="tc">Jamaath</th><th class="tc">Pts</th></tr></thead>
+      <tbody>${rows}</tbody></table></div></div>`;
+}
+
+function repDailyHTML(days){
+  const rows=days.slice().reverse().map(d=>{
+    const dt=new Date(d.date+'T00:00:00');
+    return `<tr><td>${dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td><td class="tc">${d.prayersLogged||0}/5</td><td class="tc">${d.actsDone||0}/${d.actsTotal||0}</td><td class="tc gold">${d.score}</td><td class="tc">${pcOf(d.score,d.max)}%</td></tr>`;
+  }).join('');
+  return `<div class="rep-card"><div class="rep-card-hd">Day by day</div><div class="rep-table-wrap" style="max-height:none"><table class="rep-table">
+    <thead><tr><th>Date</th><th class="tc">Salah</th><th class="tc">Acts</th><th class="tc">Score</th><th class="tc">%</th></tr></thead>
+    <tbody>${rows}</tbody></table></div></div>`;
+}
+
+// ══ CSV EXPORT ══
+function csvEscape(v){
+  const s=String(v==null?'':v);
+  return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+
+function downloadCSV(filename, rows){
+  const csv='\ufeff'+rows.map(r=>r.map(csvEscape).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function exportReportCSV(){
+  const days=getReportDays();
+  if(!days.length){showToast('No data to export');return;}
+  const {from,to,label}=getReportRange();
+
+  // collect all activity names across period
+  const actNames=[];
+  days.forEach(d=>(d.activities||[]).forEach(a=>{
+    if(!actNames.includes(a.name)) actNames.push(a.name);
+  }));
+
+  const rows=[];
+  rows.push(['Rakeeb — Islamic Life Tracker']);
+  rows.push(['Report period', label, from+' to '+to]);
+  rows.push(['Generated', new Date().toLocaleString()]);
+  rows.push([]);
+
+  // header
+  const hdr=['Date','Day','Fajr','Dhuhr','Asr','Maghrib','Isha',
+             'Salah score','Salah max','Activity score','Activity max',
+             'Total score','Total max','Percent'];
+  actNames.forEach(n=>hdr.push(n));
+  rows.push(hdr);
+
+  days.forEach(d=>{
+    const dt=new Date(d.date+'T00:00:00');
+    const pv=p=>{
+      const x=(d.prayers||{})[p];
+      if(!x) return '';
+      const t=[];
+      if(x.mosque)t.push('Mosque');
+      if(x.jamaath)t.push('Jamaath');
+      if(x.ontime)t.push('OnTime'); else if(x.late)t.push('Late');
+      else if(x.qadha)t.push('Qadha'); else if(x.missed)t.push('Missed');
+      if(x.khushu)t.push('Khushu:'+x.khushu);
+      return t.join(' | ')+' ('+x.score+')';
+    };
+    const pct=d.max>0?Math.round(d.score/d.max*100):0;
+    const row=[d.date, dt.toLocaleDateString('en-GB',{weekday:'long'}),
+      pv('Fajr'),pv('Dhuhr'),pv('Asr'),pv('Maghrib'),pv('Isha'),
+      d.prayerScore||0, d.prayerMax||0, d.actScore||0, d.actMax||0,
+      d.score, d.max, pct+'%'];
+    actNames.forEach(n=>{
+      const arr=(d.activities||[]).filter(x=>x.name===n);
+      row.push(arr.length?(arr.reduce((s,x)=>s+(x.done||0),0)+(arr[0].unit?' '+arr[0].unit:'')):'');
+    });
+    rows.push(row);
+  });
+
+  // totals
+  rows.push([]);
+  const tot=['TOTAL','', '','','','','',
+    days.reduce((s,d)=>s+(d.prayerScore||0),0),
+    days.reduce((s,d)=>s+(d.prayerMax||0),0),
+    days.reduce((s,d)=>s+(d.actScore||0),0),
+    days.reduce((s,d)=>s+(d.actMax||0),0),
+    days.reduce((s,d)=>s+d.score,0),
+    days.reduce((s,d)=>s+d.max,0),''];
+  actNames.forEach(n=>{
+    let sum=0;
+    days.forEach(d=>{(d.activities||[]).filter(x=>x.name===n).forEach(a=>{sum+=a.done||0;});});
+    tot.push(sum);
+  });
+  rows.push(tot);
+
+  // group totals for the same period
+  const A=reportAgg(days);
+  rows.push([]);
+  rows.push(['GROUP TOTALS']);
+  rows.push(['Group','Points','Max','Percent','Active days']);
+  Object.values(A.groups).sort((a,b)=>b.score-a.score).forEach(g=>rows.push([g.name,g.score,g.max,pcOf(g.score,g.max)+'%',g.days.size]));
+  rows.push(['Salah',A.pScore,A.pMax,pcOf(A.pScore,A.pMax)+'%','']);
+  rows.push([]);
+  rows.push(['ACTIVITY TOTALS']);
+  rows.push(['Group','Activity','Done','Unit','Target','Points','Max','Active days']);
+  Object.values(A.acts).sort((a,b)=>b.score-a.score).forEach(t=>rows.push([catInfo(t.cat).name,t.name,fmtN(t.done),t.unit||'',fmtN(t.target),t.score,t.max,t.days.size]));
+
+  downloadCSV(`rakeeb-report-${from}_to_${to}.csv`, rows);
+  showToast('CSV exported ✓');
+}
+
+function exportDetailCSV(){
+  const days=getReportDays();
+  if(!days.length){showToast('No data to export');return;}
+  const {from,to}=getReportRange();
+
+  const rows=[];
+  rows.push(['Rakeeb — Detailed log']);
+  rows.push(['Period', from+' to '+to]);
+  rows.push([]);
+  rows.push(['Date','Type','Category','Item','Location','Congregation','Timing','Khushu',
+             'Target','Achieved','Unit','Wakt breakdown','Status','Score','Max']);
+
+  days.forEach(d=>{
+    Object.entries(d.prayers||{}).forEach(([p,v])=>{
+      rows.push([d.date,'Salah','Prayer',p,
+        v.mosque?'Mosque':'', v.jamaath?'Jamaath':'',
+        v.ontime?'On time':v.late?'Late':v.qadha?'Qadha':v.missed?'Missed':'',
+        v.khushu||'', '','','','',
+        v.score>0?'Logged':'Pending', v.score, v.max]);
+    });
+    (d.activities||[]).forEach(a=>{
+      const wk=Object.entries(a.byWakt||{}).map(([w,val])=>w+': '+val).join(' ; ');
+      rows.push([d.date,'Activity',a.cat||'',a.name,'','','','',
+        a.target||'', a.done||0, a.unit||'', (a.wakt?a.wakt+' plan · ':'')+wk, a.status||'', a.score, a.max]);
+    });
+  });
+
+  downloadCSV(`rakeeb-detailed-${from}_to_${to}.csv`, rows);
+  showToast('Detailed CSV exported ✓');
+}
+
+// ══ HISTORY SCREEN ══
+function renderHistory(){
+  const days=Object.values(S.history).sort((a,b)=>b.date.localeCompare(a.date));
+  const stats=getAllTimeStats();
+  document.getElementById('hist-count').textContent=stats.days+' days';
+  const body=document.getElementById('hist-body');
+
+  if(!days.length){
+    body.innerHTML='<div class="bulk-empty" style="padding:40px">No history yet.<br>Plan and complete a day to start tracking.</div>';
+    return;
+  }
+
+  const streak=getStreak();
+  let html=`
+  <div class="dash-stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+    <div class="dstat"><div class="dstat-v">${stats.days}</div><div class="dstat-l">📅 Days</div></div>
+    <div class="dstat"><div class="dstat-v">${streak}</div><div class="dstat-l">🔥 Streak</div></div>
+    <div class="dstat"><div class="dstat-v">${stats.avg}<span>%</span></div><div class="dstat-l">📊 Average</div></div>
+    <div class="dstat"><div class="dstat-v">${stats.best}<span>%</span></div><div class="dstat-l">🏆 Best</div></div>
+  </div>`;
+
+  days.forEach(d=>{
+    const pct=d.max>0?Math.round(d.score/d.max*100):0;
+    const dt=new Date(d.date+'T00:00:00');
+    const isToday=d.date===cycleKey();
+    const dateLbl=dt.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    const acts=(d.activities||[]).filter(a=>a.done>0||a.status==='done');
+    const actChips=acts.slice(0,6).map(a=>
+      `<span class="hist-chip">${a.icon} ${a.done||'✓'}${a.unit?'':''}</span>`).join('');
+    html+=`
+    <div class="hist-day${isToday?' today':''}" onclick="toggleHistDay('${d.date}')">
+      <div class="hist-day-head">
+        <div class="hist-date">${dateLbl}${isToday?' <span class="hist-today-tag">Today</span>':''}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="hist-score">${d.score}<span>/${d.max}</span></div>
+          <button class="hist-chip" style="cursor:pointer" onclick="event.stopPropagation();openHistEdit('${d.date}')">✏️ Edit</button>
+        </div>
+      </div>
+      <div class="hist-bar"><div class="hist-bar-fill" style="width:${pct}%"></div></div>
+      <div class="hist-meta">
+        <span>🕌 ${d.prayersLogged||0}/5</span>
+        <span>⚡ ${d.actsDone||0}/${d.actsTotal||0}</span>
+        <span>${pct}%</span>
+      </div>
+      ${actChips?`<div class="hist-chips">${actChips}${acts.length>6?`<span class="hist-chip">+${acts.length-6}</span>`:''}</div>`:''}
+      <div class="hist-detail" id="hd-${d.date}" style="display:none">${buildHistDetail(d)}</div>
+    </div>`;
+  });
+  body.innerHTML=html;
+}
+
+function buildHistDetail(d){
+  let h='<div class="hist-sec-lbl">🕌 Salah</div>';
+  Object.entries(d.prayers||{}).forEach(([p,v])=>{
+    const tags=[];
+    if(v.mosque)tags.push('🕌');
+    if(v.jamaath)tags.push('👥');
+    if(v.ontime)tags.push('✅');else if(v.late)tags.push('⏰');
+    else if(v.qadha)tags.push('❌');else if(v.missed)tags.push('✖');
+    if(v.khushu==='high')tags.push('🟢');else if(v.khushu==='mid')tags.push('🟡');
+    else if(v.khushu==='low')tags.push('🔴');
+    h+=`<div class="hist-row"><span>${p}</span>
+      <span class="hist-row-tags">${tags.join(' ')||'—'}</span>
+      <b>${v.score}</b></div>`;
+  });
+  if((d.activities||[]).length){
+    h+='<div class="hist-sec-lbl" style="margin-top:10px">⚡ Activities</div>';
+    d.activities.forEach(a=>{
+      const wakts=Object.entries(a.byWakt||{}).map(([w,v])=>`${waktIcon(w)}${v}`).join(' ');
+      h+=`<div class="hist-row"><span>${a.icon} ${a.name}${a.wakt?' · '+waktIcon(a.wakt)+' '+a.wakt:''}</span>
+        <span class="hist-row-tags">${a.done}/${a.target||'—'}${wakts?' · '+wakts:''}</span>
+        <b>${a.score}</b></div>`;
+    });
+  }
+  return h;
+}
+
+function toggleHistDay(date){
+  const el=document.getElementById('hd-'+date);
+  if(el) el.style.display=el.style.display==='none'?'block':'none';
+}
+
+// ══ EDIT PAST DAY ══
+let histEdit=null;
+const HE_TIMING=['ontime','late','qadha','missed'];
+const HE_TIMING_LBL={ontime:'On time',late:'Late',qadha:'Qadha',missed:'Missed'};
+const HE_K=[['','—'],['High','🟢 High'],['Medium','🟡 Medium'],['Low','🔴 Low']];
+
+function normK(k){
+  if(!k) return '';
+  const s=String(k).toLowerCase();
+  if(s==='high')return 'High';
+  if(s==='mid'||s==='medium')return 'Medium';
+  if(s==='low')return 'Low';
+  return '';
+}
+
+function openHistEdit(date){
+  const d=S.history[date];
+  if(!d) return;
+  histEdit=JSON.parse(JSON.stringify(d));
+  (Object.keys(histEdit.prayers||{})).forEach(p=>{
+    histEdit.prayers[p].khushu=normK(histEdit.prayers[p].khushu);
+  });
+  const dt=new Date(date+'T00:00:00');
+  document.getElementById('pop-icon').textContent='📅';
+  document.getElementById('pop-name').textContent=dt.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('pop-status').textContent='Edit this day\u2019s records';
+  document.getElementById('pop-remark').style.display='none';
+  document.getElementById('pop-actions').innerHTML=`
+    <button class="pop-btn pb-done" onclick="saveHistEdit()">Save ✓</button>
+    <button class="pop-btn pb-close" onclick="closeHistEdit()">Cancel</button>`;
+  renderHistEditBody();
+  document.getElementById('overlay').classList.add('open');
+}
+
+function renderHistEditBody(){
+  const d=histEdit;
+  let h='';
+  const plist=PRAYERS.filter(p=>true);
+  h+='<div class="pop-opts-label">🕌 Salah</div>';
+  plist.forEach(p=>{
+    if(!d.prayers[p]) d.prayers[p]={score:0,max:PRAYER_MAX,mosque:false,jamaath:false,ontime:false,late:false,qadha:false,missed:false,khushu:''};
+    const v=d.prayers[p];
+    h+=`<div class="pop-box" style="margin-bottom:8px">
+      <div class="pop-box-l">${p}</div>
+      <div class="pop-opts-row" style="margin-bottom:6px">
+        <div class="popt${v.mosque?' on':''}" onclick="heTogglePlace('${p}')">🕌 Mosque</div>
+        <div class="popt${v.jamaath?' on':''}" onclick="heToggleJamaath('${p}')">👥 Jamaath</div>
+      </div>
+      <div class="pop-opts-row" style="margin-bottom:0">
+        ${HE_TIMING.map(t=>`<div class="popt${v[t]?(t==='missed'||t==='qadha'?' bad':t==='late'?' warn':' on'):''}" onclick="heSetTiming('${p}','${t}')">${HE_TIMING_LBL[t]}</div>`).join('')}
+      </div>
+      <div class="pop-opts-row" style="margin-top:6px;margin-bottom:0">
+        ${HE_K.map(([k,l])=>`<div class="popt${v.khushu===k?' on':''}" onclick="heSetK('${p}','${k}')">${l}</div>`).join('')}
+      </div>
+    </div>`;
+  });
+  if((d.activities||[]).length){
+    h+='<div class="pop-opts-label" style="margin-top:12px">⚡ Activities</div>';
+    d.activities.forEach((a,i)=>{
+      h+=`<div class="pop-val-row">
+        <div class="pop-val-l">${a.icon||'⚡'} ${a.name}${a.wakt?' · '+a.wakt:''}${a.target?` · target ${a.target}`:''}</div>
+        <input class="pop-val-inp" type="number" step="any" value="${a.done||0}" oninput="heSetDone(${i},this.value)">
+        <div class="pop-val-unit">${a.unit||''}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('pop-body').innerHTML=h;
+}
+
+function heTogglePlace(p){ histEdit.prayers[p].mosque=!histEdit.prayers[p].mosque; renderHistEditBody(); }
+function heToggleJamaath(p){ histEdit.prayers[p].jamaath=!histEdit.prayers[p].jamaath; renderHistEditBody(); }
+function heSetTiming(p,t){
+  const v=histEdit.prayers[p];
+  const was=v[t];
+  HE_TIMING.forEach(x=>v[x]=false);
+  v[t]=!was;
+  renderHistEditBody();
+}
+function heSetK(p,k){ histEdit.prayers[p].khushu=histEdit.prayers[p].khushu===k?'':k; renderHistEditBody(); }
+function heSetDone(i,val){ histEdit.activities[i].done=parseFloat(val)||0; }
+
+function heScorePrayer(v){
+  let s=0;
+  if(v.mosque) s+=PRAYER_SCORES.Mosque; else if(v.ontime||v.late||v.qadha) s+=PRAYER_SCORES.Home;
+  if(v.jamaath) s+=PRAYER_SCORES.Jamaath;
+  if(v.ontime) s+=PRAYER_SCORES['On time'];
+  else if(v.late) s+=PRAYER_SCORES.Late;
+  else if(v.qadha) s+=PRAYER_SCORES.Qadha;
+  if(v.khushu==='High') s+=PRAYER_SCORES.High;
+  else if(v.khushu==='Medium') s+=PRAYER_SCORES.Medium;
+  else if(v.khushu==='Low') s+=PRAYER_SCORES.Low;
+  return Math.min(s,PRAYER_MAX);
+}
+
+function heScoreAct(a){
+  const cfg=actCfg(a.cat,{points:a.pts});
+  const target=parseFloat(a.target)||1;
+  const done=parseFloat(a.done)||0;
+  if(done<=0) return {score:0,max:cfg.max};
+  const ratio=Math.min(done/target,1);
+  return {score:Math.round(cfg.per+(cfg.max-cfg.per)*ratio), max:cfg.max};
+}
+
+function saveHistEdit(){
+  const d=histEdit;
+  let pScore=0,pMax=0,aScore=0,aMax=0;
+  Object.values(d.prayers||{}).forEach(v=>{
+    v.score=heScorePrayer(v); v.max=PRAYER_MAX;
+    pScore+=v.score; pMax+=v.max;
+  });
+  (d.activities||[]).forEach(a=>{
+    const r=heScoreAct(a);
+    a.score=r.score; a.max=r.max;
+    a.status=a.done>0?'done':'pending';
+    aScore+=r.score; aMax+=r.max;
+  });
+  d.prayerScore=pScore; d.prayerMax=pMax;
+  d.actScore=aScore; d.actMax=aMax;
+  d.score=pScore+aScore; d.max=pMax+aMax;
+  d.actsDone=(d.activities||[]).filter(a=>a.status==='done').length;
+  d.actsTotal=(d.activities||[]).length;
+  d.prayersLogged=Object.values(d.prayers||{}).filter(p=>p.score>0).length;
+  S.history[d.date]=d;
+  saveState();
+  closeHistEdit();
+  renderHistory();
+  showToast('Day updated ✓');
+}
+
+function closeHistEdit(){
+  histEdit=null;
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('pop-remark').style.display='';
+}
+
+// ══ DAILY HISTORY RECORDING ══
+function recordToday(dateKey){
+  const d = dateKey||S.lastPlanDate||todayStr();
+  if(!S.plan.length) return;
+  const prayers = S.plan.filter(it=>it.type==='prayer');
+  const acts    = S.plan.filter(it=>it.type!=='prayer');
+
+  let pScore=0, pMax=0, aScore=0, aMax=0;
+  const prayerDetail={};
+  prayers.forEach(it=>{
+    const r=calcPrayerScore(it.prayer);
+    pScore+=r.score; pMax+=r.max;
+    const lg=S.prayerLog[it.prayer]||{};
+    prayerDetail[it.prayer]={
+      score:r.score, max:r.max,
+      mosque:!!lg.mosque, jamaath:!!lg.jamaath,
+      ontime:!!lg.ontime, late:!!lg.late,
+      qadha:!!lg.qadha, missed:!!lg.missed,
+      khushu:lg.k||''
+    };
+  });
+
+  const actDetail=[];
+  acts.forEach(it=>{
+    const r=calcActScore(it);
+    aScore+=r.score; aMax+=r.max;
+    const ex=S.exec[it.id]||{};
+    const logs=ex.logs||[];
+    const total=logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+    actDetail.push({
+      id:it.id, name:it.name, icon:it.icon, cat:it.catId, wakt:it.wakt||'', pts:parseFloat(it.points)||0,
+      unit:it.unit||'', target:parseFloat(it.val)||0,
+      done:total, score:r.score, max:r.max,
+      status:ex.status||'pending',
+      byWakt:logs.reduce((m,l)=>{m[l.wakt]=(m[l.wakt]||0)+(parseFloat(l.val)||0);return m;},{})
+    });
+  });
+
+  S.history[d]={
+    date:d, dayMode:S.dayMode,
+    score:pScore+aScore, max:pMax+aMax,
+    prayerScore:pScore, prayerMax:pMax,
+    actScore:aScore, actMax:aMax,
+    prayers:prayerDetail, activities:actDetail,
+    actsDone:actDetail.filter(a=>a.status==='done').length,
+    actsTotal:actDetail.length,
+    prayersLogged:Object.values(prayerDetail).filter(p=>p.score>0).length
+  };
+  saveState();
+}
+
+function getStreak(){
+  let streak=0;
+  const base=cycleKey();
+  for(let i=0;i<400;i++){
+    const h=S.history[addDays(base,-i)];
+    if(h && h.score>0) streak++;
+    else if(i>0) break;
+  }
+  return streak;
+}
+
+function getLast7(){
+  const out=[], base=cycleKey();
+  for(let i=6;i>=0;i--){
+    const key=addDays(base,-i);
+    const dt=new Date(key+'T00:00:00');
+    const h=S.history[key];
+    out.push({
+      key, label:dt.toLocaleDateString('en-GB',{weekday:'narrow'}),
+      score:h?h.score:0, max:h?h.max:0,
+      pct:h&&h.max>0?Math.round(h.score/h.max*100):0,
+      isToday:key===base
+    });
+  }
+  return out;
+}
+
+function getAllTimeStats(){
+  const days=Object.values(S.history);
+  if(!days.length) return {days:0,avg:0,best:0,totalScore:0};
+  const totalScore=days.reduce((s,d)=>s+d.score,0);
+  const pcts=days.filter(d=>d.max>0).map(d=>Math.round(d.score/d.max*100));
+  return {
+    days:days.length,
+    avg:pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):0,
+    best:pcts.length?Math.max(...pcts):0,
+    totalScore
+  };
+}
+
+// ══ HOME PROGRESS DASHBOARD ══
+function renderProgressDash(){
+  const plan=S.plan;
+  if(!plan.length) return '';
+
+  const prayers=plan.filter(it=>it.type==='prayer');
+  const acts=plan.filter(it=>it.type!=='prayer');
+  let pScore=0,pMax=0,aScore=0,aMax=0;
+  prayers.forEach(it=>{const r=calcPrayerScore(it.prayer);pScore+=r.score;pMax+=r.max;});
+  acts.forEach(it=>{const r=calcActScore(it);aScore+=r.score;aMax+=r.max;});
+  const total=pScore+aScore, maxT=pMax+aMax;
+  const pct=maxT>0?Math.round(total/maxT*100):0;
+
+  const actsDone=acts.filter(a=>S.exec[a.id]?.status==='done').length;
+  const prayersLogged=prayers.filter(p=>calcPrayerScore(p.prayer).score>0).length;
+  const streak=getStreak();
+  const week=getLast7();
+  const stats=getAllTimeStats();
+
+  // ring geometry
+  const R=42, C=2*Math.PI*R, off=C-(pct/100)*C;
+
+  // weekly bars
+  const wkBars=week.map(d=>`
+    <div class="wk-col">
+      <div class="wk-bar-track">
+        <div class="wk-bar-fill${d.isToday?' today':''}" style="height:${Math.max(d.pct,3)}%"></div>
+      </div>
+      <div class="wk-lbl${d.isToday?' today':''}">${d.label}</div>
+    </div>`).join('');
+
+  // category breakdown
+  const byCat={};
+  acts.forEach(it=>{
+    const cid=it.catId||'custom';
+    if(!byCat[cid]) byCat[cid]={score:0,max:0,done:0,total:0};
+    const r=calcActScore(it);
+    byCat[cid].score+=r.score; byCat[cid].max+=r.max;
+    byCat[cid].total++;
+    if(S.exec[it.id]?.status==='done') byCat[cid].done++;
+  });
+  const catRows=Object.entries(byCat).map(([cid,v])=>{
+    const cat=CATEGORIES.find(x=>x.id===cid)||{icon:'✏️',name:'Custom'};
+    const cp=v.max>0?Math.round(v.score/v.max*100):0;
+    return `<div class="cat-prog-row">
+      <div class="cat-prog-icon">${cat.icon}</div>
+      <div class="cat-prog-body">
+        <div class="cat-prog-top">
+          <span class="cat-prog-name">${cat.name}</span>
+          <span class="cat-prog-val">${v.done}/${v.total}</span>
+        </div>
+        <div class="cat-prog-bar"><div class="cat-prog-fill" style="width:${cp}%"></div></div>
+      </div>
+      <div class="cat-prog-score">${v.score}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="dash">
+    <div class="dash-main">
+      <div class="ring-wrap">
+        <svg width="104" height="104" viewBox="0 0 104 104">
+          <circle cx="52" cy="52" r="${R}" fill="none" stroke="rgba(15,122,68,.09)" stroke-width="7"/>
+          <circle cx="52" cy="52" r="${R}" fill="none" stroke="var(--green)" stroke-width="7"
+            stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"
+            transform="rotate(-90 52 52)" style="transition:stroke-dashoffset .8s ease"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct">${pct}<span>%</span></div>
+          <div class="ring-sub">${total}/${maxT}</div>
+        </div>
+      </div>
+      <div class="dash-stats">
+        <div class="dstat"><div class="dstat-v">${streak}</div><div class="dstat-l">🔥 Streak</div></div>
+        <div class="dstat"><div class="dstat-v">${prayersLogged}<span>/5</span></div><div class="dstat-l">🕌 Salah</div></div>
+        <div class="dstat"><div class="dstat-v">${actsDone}<span>/${acts.length}</span></div><div class="dstat-l">⚡ Acts</div></div>
+        <div class="dstat"><div class="dstat-v">${stats.avg}<span>%</span></div><div class="dstat-l">📊 Avg</div></div>
+      </div>
+    </div>
+
+    <div class="dash-split">
+      <div class="split-item">
+        <div class="split-top"><span>🕌 Salah</span><b>${pScore}/${pMax}</b></div>
+        <div class="split-bar"><div class="split-fill gold" style="width:${pMax?Math.round(pScore/pMax*100):0}%"></div></div>
+      </div>
+      <div class="split-item">
+        <div class="split-top"><span>⚡ Activities</span><b>${aScore}/${aMax}</b></div>
+        <div class="split-bar"><div class="split-fill" style="width:${aMax?Math.round(aScore/aMax*100):0}%"></div></div>
+      </div>
+    </div>
+
+    ${catRows?`<div class="dash-cats">${catRows}</div>`:''}
+
+    <div class="dash-week">
+      <div class="wk-head">
+        <span>Last 7 days</span>
+        <span class="wk-meta">${stats.days} day${stats.days!==1?'s':''} tracked · best ${stats.best}%</span>
+      </div>
+      <div class="wk-bars">${wkBars}</div>
+    </div>
+  </div>`;
+}
+
+// ── BULK ACTIVITY FILL (from prayer popup) ──
+function getWaktForPrayer(prayer){ return waktLabel(prayer); }
+
+function buildBulkActsHTML(prayer){
+  const wakt=getWaktForPrayer(prayer);
+  const acts=waktActs(prayer);
+  if(!acts.length) return `<div class="bulk-empty">No activities planned for this wakt<br><button class="bulk-quick-btn" style="margin-top:8px" onclick="closePopup();openWaktPlanner('${prayer}')">＋ Plan this wakt</button></div>`;
+
+  let rows='';
+  acts.forEach(it=>{
+    const ex=S.exec[it.id]||{};
+    const logs=ex.logs||[];
+    const total=logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+    const target=parseFloat(it.val)||0;
+    // value already logged in THIS wakt
+    const thisWaktVal=logs.filter(l=>l.wakt===wakt).reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+    const filled=thisWaktVal>0;
+    const remaining=target>0?Math.max(target-total,0):0;
+    rows+=`
+    <div class="bulk-act-row${filled?' filled':''}" id="bulkrow-${it.id}">
+      <div class="bulk-act-icon">${it.icon}</div>
+      <div class="bulk-act-body">
+        <div class="bulk-act-name">${it.name}</div>
+        <div class="bulk-act-meta">
+          ${target>0?`Target ${it.val} · <b>${total}</b> done${remaining>0?` · ${remaining} left`:' ✓'}`:'No target'}
+          ${thisWaktVal>0?` · <b>${thisWaktVal}</b> this wakt`:''}
+        </div>
+      </div>
+      <input class="bulk-act-inp" id="bulk-${it.id}" type="number" min="0"
+        placeholder="0" value="">
+      <div class="bulk-act-unit">${it.unit||''}</div>
+    </div>`;
+  });
+
+  return `
+  <div class="bulk-acts">
+    <div class="bulk-header">
+      <div class="bulk-wakt-badge">${waktIcon(wakt)} ${wakt}</div>
+      <div class="bulk-quick">
+        <button class="bulk-quick-btn" onclick="fillBulkTargets('${prayer}')">Fill targets</button>
+        <button class="bulk-quick-btn" onclick="clearBulkInputs()">Clear</button>
+      </div>
+    </div>
+    ${rows}
+    <button class="bulk-save-btn" onclick="saveBulkActs('${prayer}')">Save all entries ✓</button>
+  </div>`;
+}
+
+function fillBulkTargets(prayer){
+  const acts=waktActs(prayer);
+  acts.forEach(it=>{
+    const inp=document.getElementById('bulk-'+it.id);
+    if(!inp) return;
+    const ex=S.exec[it.id]||{};
+    const logs=ex.logs||[];
+    const total=logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+    const target=parseFloat(it.val)||0;
+    const remaining=Math.max(target-total,0);
+    if(remaining>0) inp.value=remaining;
+  });
+}
+
+function clearBulkInputs(){
+  document.querySelectorAll('.bulk-act-inp').forEach(i=>i.value='');
+}
+
+function saveBulkActs(prayer){
+  const wakt=getWaktForPrayer(prayer);
+  const acts=waktActs(prayer);
+  const now=new Date();
+  const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  let count=0;
+
+  acts.forEach(it=>{
+    const inp=document.getElementById('bulk-'+it.id);
+    if(!inp) return;
+    const val=parseFloat(inp.value);
+    if(!val||val<=0) return;
+    if(!S.exec[it.id]) S.exec[it.id]={status:'pending',logs:[],remark:''};
+    if(!S.exec[it.id].logs) S.exec[it.id].logs=[];
+    S.exec[it.id].logs.push({wakt, val, time:timeStr, note:''});
+    // update status
+    const total=S.exec[it.id].logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+    const target=parseFloat(it.val)||0;
+    S.exec[it.id].status=(target>0&&total>=target)?'done':'pending';
+    S.exec[it.id].doneVal=total;
+    count++;
+  });
+
+  if(count===0){showToast('Enter at least one value');return;}
+  saveState();
+  showToast(count+' activit'+(count>1?'ies':'y')+' logged ✓');
+  closePopup();
+  renderExecBody(); updateProg();
+  recordToday();
+  const sb=document.getElementById('score-bar-slot');
+  if(sb) sb.innerHTML=renderProgressDash();
+}
+
+// ── WAKT HELPERS ──
+function getCurrentWakt(){ return waktLabel(currentWaktName()); }
+
+function getWaktOptions(pref){
+  const cur=pref||getCurrentWakt();
+  return PRAYERS.map(p=>waktLabel(p)).map(o=>({name:o, current:o===cur}));
+}
+
+function waktIcon(wakt){
+  if(!wakt) return '⏱';
+  if(wakt.startsWith('Fajr')) return '🌅';
+  if(wakt.startsWith('Dhuhr')) return '🌤';
+  if(wakt.startsWith('Asr')) return '☀️';
+  if(wakt.startsWith('Maghrib')) return '🌆';
+  if(wakt.startsWith('Isha')) return '🌙';
+  return '⏱';
+}
+
+function addActLog(itemId, unit){
+  const wakt=document.getElementById('log-wakt')?.value;
+  const val=document.getElementById('log-val')?.value;
+  if(!val||parseFloat(val)<=0){showToast('Enter a value');return;}
+  if(!S.exec[itemId]) S.exec[itemId]={status:'pending',logs:[],remark:''};
+  if(!S.exec[itemId].logs) S.exec[itemId].logs=[];
+  const now=new Date();
+  const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  S.exec[itemId].logs.push({wakt, val:parseFloat(val), time:timeStr, note:''});
+  // auto-mark status based on total vs target
+  const item=S.plan.find(it=>it.id===itemId);
+  if(item){
+    const total=S.exec[itemId].logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+    const target=parseFloat(item.val)||0;
+    S.exec[itemId].status = target>0&&total>=target ? 'done' : 'pending';
+    S.exec[itemId].doneVal=total;
+  }
+  saveState();
+  showToast('Logged ✓');
+  // refresh popup body
+  openPopup(item||S.plan.find(it=>it.id===itemId));
+  renderExecBody(); updateProg();
+}
+
+function deleteActLog(itemId, idx){
+  if(!S.exec[itemId]?.logs) return;
+  S.exec[itemId].logs.splice(idx,1);
+  const item=S.plan.find(it=>it.id===itemId);
+  if(item){
+    const total=S.exec[itemId].logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
+    const target=parseFloat(item.val)||0;
+    S.exec[itemId].status=total>=target&&target>0?'done':'pending';
+    S.exec[itemId].doneVal=total;
+  }
+  saveState();
+  openPopup(item);
+  renderExecBody(); updateProg();
+}
+
+function openPrayerFromExec(prayer){
+  const item=S.plan.find(it=>it.type==='prayer'&&it.prayer===prayer)||
+    {id:'prayer-'+prayer,type:'prayer',icon:'🕌',name:prayer+' prayer',prayer};
+  openPopup(item);
+}
+
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closePrayerPlanPopup()}
+function closePopup(){document.getElementById('overlay').classList.remove('open');currentPopItem=null}
+
+// ══ SETTINGS ══
+function renderSettings(){
+  syncDayModeCards();
+  document.getElementById('set-day-end').value=to24(String(S.dayEnd||'22:00'));
+  document.getElementById('set-autoplan').checked=S.autoPlan!==false;
+  document.getElementById('set-autoplan-min').value=parseInt(S.autoPlanMin)||15;
+  document.getElementById('set-alarm-azan').checked=S.alarmAzan!==false;
+  document.getElementById('set-alarm-plan').checked=!!S.alarmPlan;
+  document.getElementById('set-alarm-planmin').value=parseInt(S.alarmPlanMin)||10;
+  const pl=document.getElementById('set-pt-list'); pl.innerHTML='';
+  PRAYERS.forEach(p=>{
+    pl.innerHTML+=`
+    <div class="pt-row">
+      <div><div class="pt-name">${p}</div><div class="pt-ar">${P_AR[p]}</div></div>
+      <input class="pt-inp" type="time" id="spt-${p}" value="${to24(S.pt[p])}"
+        onchange="S.pt['${p}']=fmtAMPM(this.value);renderAlarmList()">
+    </div>`;
+  });
+  renderAlarmList();
+  renderScoreCfg();
+  const nat=NATIVE();
+  const q=id=>document.getElementById(id);
+  if(q('ics-btn')) q('ics-btn').style.display=nat?'none':'';
+  if(q('notif-btn')) q('notif-btn').style.display=nat?'none':'';
+  if(q('native-test')) q('native-test').style.display=nat?'':'none';
+  if(q('set-account')) q('set-account').style.display=nat?'none':'';
+}
+
+// ══ ACTIVITY SCORES (settings) ══
+function scoreCats(){ return CATEGORIES.map(c=>({id:c.id,icon:c.icon,name:c.name})).concat([{id:'custom',icon:'✏️',name:'Custom'}]); }
+function renderScoreCfg(){
+  const el=document.getElementById('score-cfg-list'); if(!el) return;
+  el.innerHTML=scoreCats().map(c=>{
+    const cfg=actCfg(c.id);
+    return `<div class="pt-row">
+      <div class="pt-name">${c.icon} ${c.name}</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="alarm-sub">Start</span><input class="pt-inp" style="width:56px" type="number" min="0" value="${cfg.per}" onchange="setScoreCfg('${c.id}','per',this.value)">
+        <span class="alarm-sub">Full</span><input class="pt-inp" style="width:56px" type="number" min="1" value="${cfg.max}" onchange="setScoreCfg('${c.id}','max',this.value)">
+      </div>
+    </div>`;
+  }).join('');
+}
+function setScoreCfg(cat,key,v){
+  if(!S.scoreCfg) S.scoreCfg={};
+  const cur=actCfg(cat);
+  const next=Object.assign({per:cur.per,max:cur.max},S.scoreCfg[cat]||{});
+  next[key]=Math.max(key==='max'?1:0,parseFloat(v)||0);
+  if(next.per>next.max) next.per=next.max;
+  S.scoreCfg[cat]=next;
+  saveState(); renderScoreCfg();
+  showToast('Score updated ✓');
+}
+function resetScoreCfg(){ S.scoreCfg={}; saveState(); renderScoreCfg(); showToast('Scores reset'); }
+
+// ══ NATIVE (Android app) ALARMS ══
+const NATIVE=()=>!!(window.RakeebNative&&window.RakeebNative.isNative);
+let nativeStatus={msg:''};
+async function syncNativeAlarms(askPerm){
+  if(!NATIVE()) return;
+  const list=[];
+  PRAYERS.forEach((p,i)=>alarmList(p).forEach(x=>{
+    list.push({id:(x.kind==='azan'?1:11)+i,
+      title:x.kind==='azan'?'Azan — '+p:'Plan '+p+' wakt',
+      body:x.kind==='azan'?'Time for '+p+'. Tap to plan '+waktLabel(p):'Tap to plan '+waktLabel(p),
+      hour:Math.floor(x.min/60), minute:x.min%60, extra:{prayer:p,kind:x.kind}});
+  }));
+  try{
+    let warn='';
+    if(askPerm&&list.length){
+      const r=await window.RakeebNative.permissions();
+      if(r.display!=='granted') warn='⚠️ Notifications are blocked. Allow them in Android settings → Apps → Rakeeb.';
+      else if(r.exact!=='granted') warn='⚠️ Allow "Alarms & reminders" for Rakeeb in Android settings so alarms ring on time.';
+    }
+    const n=await window.RakeebNative.schedule(list);
+    nativeStatus.msg=warn||(n?'✅ '+n+' daily alarm'+(n>1?'s':'')+' scheduled. They ring even when the app is closed.':'No alarms scheduled.');
+  }catch(e){ nativeStatus.msg='Could not schedule alarms: '+(e&&e.message||e); }
+  renderAlarmList();
+}
+async function testNativeAlarm(){
+  try{
+    const r=await window.RakeebNative.permissions();
+    if(r.display!=='granted'){ showToast('Allow notifications first'); return; }
+    await window.RakeebNative.testIn(10);
+    showToast('Alarm in 10 seconds — you can close the app');
+  }catch(e){ showToast('Test failed'); }
+}
+window.addEventListener('rakeeb-native-tap',e=>{
+  const p=(e.detail||{}).prayer;
+  checkRollover();
+  if(!hasPlan()){ showScreen('s-start'); return; }
+  runAutoPlan();
+  if(p&&!S.wPlanned[p]) openWaktPlanner(p); else showScreen('s-exec');
+});
+
+// ══ WAKT ALARMS ══
+function alarmList(p){
+  const out=[], base=pMin(S.pt[p]), wrap=m=>((m%1440)+1440)%1440;
+  if(S.alarmAzan!==false) out.push({kind:'azan',min:wrap(base),name:'Azan'});
+  if(S.alarmPlan) out.push({kind:'plan',min:wrap(base+(parseInt(S.alarmPlanMin)||10)),name:'Plan'});
+  return out;
+}
+function alarmMin(p){ const l=alarmList(p); return l.length?l[0].min:pMin(S.pt[p]); }
+function fmtMin(m){ return fmtAMPM(Math.floor(m/60)+':'+String(m%60).padStart(2,'0')); }
+function renderAlarmList(){
+  const el=document.getElementById('alarm-list'); if(!el) return;
+  if(NATIVE()){
+    const any0=PRAYERS.some(p=>alarmList(p).length);
+    el.innerHTML=(any0?PRAYERS.map(p=>`<div class="pt-row"><div><div class="pt-name">${p}</div>${alarmList(p).map(x=>`<div class="alarm-sub">${x.name} · ${fmtMin(x.min)}</div>`).join('')}</div></div>`).join(''):'<div class="alarm-sub" style="padding:4px">Turn on at least one alarm above.</div>')
+      +`<div class="alarm-sub" style="padding:6px 4px">${nativeStatus.msg||'Alarms are set automatically when you tap Save settings.'}</div>`;
+    return;
+  }
+  const isAndroid=/Android/i.test(navigator.userAgent);
+  const any=PRAYERS.some(p=>alarmList(p).length);
+  if(!any){ el.innerHTML='<div class="alarm-sub" style="padding:4px">Turn on at least one alarm above.</div>'; return; }
+  el.innerHTML=PRAYERS.map(p=>{
+    const l=alarmList(p);
+    return `<div class="pt-row">
+      <div><div class="pt-name">${p}</div>
+        ${l.map(x=>`<div class="alarm-sub">${x.name} · ${fmtMin(x.min)}</div>`).join('')}</div>
+      ${isAndroid?`<div class="alarm-btns">${l.map(x=>`<button class="alarm-btn" onclick="setPhoneAlarm('${p}','${x.kind}')">⏰ ${x.name}</button>`).join('')}</div>`:''}
+    </div>`;
+  }).join('')+(isAndroid?'':'<div class="alarm-sub" style="padding:2px 4px">One-tap alarms work on Android. On iPhone or desktop, use the calendar file below.</div>');
+}
+function setPhoneAlarm(p,kind){
+  const x=alarmList(p).find(a=>a.kind===kind); if(!x) return;
+  const h=Math.floor(x.min/60), mi=x.min%60;
+  const msg=encodeURIComponent(kind==='azan'?'Azan - '+p:'Rakeeb - plan '+p+' wakt');
+  const url='intent:#Intent;action=android.intent.action.SET_ALARM;i.android.intent.extra.alarm.HOUR='+h+
+    ';i.android.intent.extra.alarm.MINUTES='+mi+';S.android.intent.extra.alarm.MESSAGE='+msg+
+    ';B.android.intent.extra.alarm.SKIP_UI=false;end';
+  const a=document.createElement('a'); a.href=url; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('Confirm the alarm in your Clock app');
+}
+function icsStamp(d){
+  const z=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'T'+z(d.getHours())+z(d.getMinutes())+'00';
+}
+function downloadAlarmICS(){
+  const utc=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Rakeeb//Wakt alarms//EN','CALSCALE:GREGORIAN'];
+  let n=0;
+  PRAYERS.forEach(p=>alarmList(p).forEach(x=>{
+    n++;
+    const st=new Date(); st.setHours(Math.floor(x.min/60),x.min%60,0,0);
+    const en=new Date(st.getTime()+10*60000);
+    const title=x.kind==='azan'?'Azan - '+p:'Rakeeb - plan '+p+' wakt';
+    L.push('BEGIN:VEVENT','UID:rakeeb-'+p.toLowerCase()+'-'+x.kind+'@rakeeb','DTSTAMP:'+utc,
+      'DTSTART:'+icsStamp(st),'DTEND:'+icsStamp(en),'RRULE:FREQ=DAILY','SUMMARY:'+title,
+      'DESCRIPTION:'+(x.kind==='azan'?'Azan time for '+p+'. Open Rakeeb to plan '+waktLabel(p):'Open Rakeeb and plan '+waktLabel(p)),
+      'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+title,'TRIGGER:PT0S','END:VALARM','END:VEVENT');
+  }));
+  if(!n){ showToast('Turn on at least one alarm first'); return; }
+  L.push('END:VCALENDAR');
+  const blob=new Blob([L.join('\r\n')],{type:'text/calendar;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='rakeeb-wakt-alarms.ics';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('Open the file to add '+n+' daily alarm'+(n>1?'s':''));
+}
+function askNotif(){
+  if(!('Notification' in window)){ showToast('Notifications not supported here'); return; }
+  Notification.requestPermission().then(r=>showToast(r==='granted'?'Notifications on ✓':'Notifications blocked'));
+}
+function notifyWakt(w){
+  showToast(w+' wakt — time to plan');
+  if('Notification' in window && Notification.permission==='granted'){
+    try{ new Notification('Rakeeb — '+w+' wakt',{body:'Plan '+waktLabel(w)}); }catch(e){}
+  }
+}
+function syncDayModeCards(){
+  ['maghrib','subh','custom'].forEach(m=>{
+    const el=document.getElementById('dm-'+m);
+    if(el) el.classList.toggle('active',S.dayMode===m);
+  });
+  const row=document.getElementById('dm-custom-row');
+  if(row) row.style.display=S.dayMode==='custom'?'flex':'none';
+}
+function setDayMode(m){ S.dayMode=m; syncDayModeCards(); }
+function setDayEnd(v){ S.dayEnd=v||'22:00'; }
+function saveSettings(){
+  saveState();
+  showToast('Settings saved ✓');
+  checkRollover();
+  syncNativeAlarms(true);
+  showScreen(hasPlan()?'s-exec':'s-start');
+}
+function to24(str){
+  try{let s=str.replace(/AM|PM/gi,'').trim().split(':'),h=parseInt(s[0]),m=parseInt(s[1]||0);
+    if(/pm/i.test(str)&&h!==12)h+=12;if(/am/i.test(str)&&h===12)h=0;
+    return`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`}catch{return'00:00'}
+}
+function fmtAMPM(t){
+  let[h,m]=t.split(':').map(Number),ap=h>=12?'PM':'AM';
+  h=h%12||12;return`${h}:${m.toString().padStart(2,'0')} ${ap}`
+}
+
+// ══ SAVE ══
+function saveState(){
+  try{ localStorage.setItem('rakeebState',JSON.stringify(S)) }catch(e){}
+  if(window.parent!==window){
+    try{ window.parent.postMessage({type:'rakeeb:save',data:JSON.parse(JSON.stringify(S))},'*') }catch(e){}
+  }
+}
+function signOut(){
+  try{ localStorage.removeItem('rakeebState') }catch(e){}
+  if(window.parent!==window) window.parent.postMessage({type:'rakeeb:signout'},'*');
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ══ SCORE SYSTEM ══
+const PRAYER_SCORES = {
+  // location
+  Mosque: 50, Home: 20, Work: 20, Travel: 15,
+  // congregation
+  Jamaath: 40,
+  // timing
+  'On time': 50, Late: 15, Qadha: 5, Missed: 0,
+  // khushu
+  High: 30, Medium: 15, Low: 5,
+};
+const PRAYER_MAX = 50 + 40 + 50 + 30; // 170 per prayer
+
+const ACT_SCORES = {
+  dhikr:   { per: 10, max: 50 },
+  quran:   { per: 20, max: 80 },
+  health:  { per: 15, max: 60 },
+  academics:{ per: 20, max: 80 },
+  family:  { per: 15, max: 50 },
+  charity: { per: 20, max: 60 },
+  haram:   { per: 25, max: 100 },
+  custom:  { per: 10, max: 40 },
+};
+
+function calcPrayerScore(prayer){
+  const log = S.prayerLog[prayer] || {};
+  const plan = S.prayerPlan[prayer] || {};
+  // use log if available, else plan
+  const src = (log.ontime||log.late||log.qadha||log.missed) ? log : plan;
+  let score = 0;
+  // location
+  if(src.mosque || src.loc==='Mosque') score += PRAYER_SCORES.Mosque;
+  else if(src.loc==='Home'||src.home) score += PRAYER_SCORES.Home;
+  else if(src.loc==='Work'||src.work) score += PRAYER_SCORES.Work;
+  else if(src.loc==='Travel'||src.travel) score += PRAYER_SCORES.Travel;
+  // congregation (independent)
+  if(src.jamaath) score += PRAYER_SCORES.Jamaath;
+  // timing
+  if(src.ontime||src.timing==='On time') score += PRAYER_SCORES['On time'];
+  else if(src.late||src.timing==='Late') score += PRAYER_SCORES.Late;
+  else if(src.qadha||src.timing==='Qadha') score += PRAYER_SCORES.Qadha;
+  else if(src.missed||src.timing==='Missed') score += 0;
+  // khushu
+  const k = src.k || src.khushu;
+  if(k==='High') score += PRAYER_SCORES.High;
+  else if(k==='Medium') score += PRAYER_SCORES.Medium;
+  else if(k==='Low') score += PRAYER_SCORES.Low;
+  return { score: Math.min(score, PRAYER_MAX), max: PRAYER_MAX };
+}
+
+// Effective points for an activity: category defaults, overridden by Settings, then by the activity's own points
+function actCfg(catId, item){
+  const base=Object.assign({}, ACT_SCORES[catId]||ACT_SCORES.custom, (S.scoreCfg&&S.scoreCfg[catId])||{});
+  const pts=parseFloat(item&&item.points)||0;
+  if(pts>0){ const k=pts/(base.max||1); return {per:Math.max(1,Math.round(base.per*k)), max:Math.round(pts)}; }
+  return {per:Math.max(0,parseFloat(base.per)||0), max:Math.max(1,parseFloat(base.max)||1)};
+}
+function calcActScore(item){
+  const cfg = actCfg(item.catId, item);
+  const execData = S.exec[item.id];
+  if(!execData) return { score:0, max:cfg.max };
+  if(execData.status==='skip') return { score:0, max:cfg.max };
+  // sum all logs
+  const logs = execData.logs || [];
+  const total = logs.reduce((s,l)=>s+(parseFloat(l.val)||0), parseFloat(execData.doneVal)||0);
+  const target = parseFloat(item.val) || 1;
+  const ratio = Math.min(total / target, 1);
+  if(ratio===0) return { score:0, max:cfg.max };
+  const score = Math.round(cfg.per + (cfg.max - cfg.per) * ratio);
+  return { score, max: cfg.max };
+}
+
+function calcTotalScore(){
+  let total=0, maxTotal=0;
+  S.plan.forEach(item=>{
+    if(item.type==='prayer'){
+      const {score,max}=calcPrayerScore(item.prayer);
+      total+=score; maxTotal+=max;
+    } else {
+      const {score,max}=calcActScore(item);
+      total+=score; maxTotal+=max;
+    }
+  });
+  return {total, max:maxTotal};
+}
+
+
+
+
+
+function onReturn(){
+  if(checkRollover()){ showScreen('s-start'); return; }
+  runAutoPlan();
+  const execActive=document.getElementById('s-exec').classList.contains('active');
+  const popupOpen=document.getElementById('overlay').classList.contains('open');
+  if(execActive){ renderExec(); if(!popupOpen) maybePromptPlan(); }
+}
+setInterval(()=>{
+  if(checkRollover()){ showScreen('s-start'); showToast('New day — start it 🤲'); lastWakt=currentWaktName(); return; }
+  const w=currentWaktName();
+  const execActive=document.getElementById('s-exec').classList.contains('active');
+  const popupOpen=document.getElementById('overlay').classList.contains('open');
+  if(lastWakt && w!==lastWakt && hasPlan()){
+    notifyWakt(w);
+    if(execActive && !popupOpen) maybePromptPlan(true);
+  }
+  lastWakt=w;
+  runAutoPlan();
+  if(execActive){ renderBanner(); renderStrip(); }
+},15000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') onReturn(); });
+window.addEventListener('focus',onReturn);
+
+// Activities saved before per-wakt planning get attached to the wakt they were planned in
+function migrate(){
+  if(!S.wPlanned) S.wPlanned={};
+  if(S.alarmAzan===undefined) S.alarmAzan=true;
+  if(S.alarmOffset>0 && !S.alarmPlan){ S.alarmPlan=true; S.alarmPlanMin=S.alarmOffset; S.alarmOffset=0; }
+  if(!S.alarmPlanMin) S.alarmPlanMin=10;
+  if(S.autoPlan===undefined) S.autoPlan=true;
+  if(!S.autoPlanMin) S.autoPlanMin=15;
+  if(!S.lastWaktPlans) S.lastWaktPlans={};
+  // seed "last plan per prayer" from saved history so auto-plan works from day one
+  PRAYERS.forEach(p=>{
+    if(S.lastWaktPlans[p]) return;
+    const days=Object.values(S.history||{}).sort((a,b)=>b.date.localeCompare(a.date));
+    for(const d of days){
+      const its=(d.activities||[]).filter(a=>a.wakt===p);
+      if(its.length){
+        S.lastWaktPlans[p]=its.map(a=>({baseId:String(a.id).split('@')[0],icon:a.icon,name:a.name,unit:a.unit||'',val:a.target?String(a.target):'',catId:a.cat,points:a.pts?String(a.pts):''}));
+        break;
+      }
+    }
+  });
+  (S.plan||[]).forEach(it=>{
+    if(it.type!=='prayer' && !it.wakt){ it.wakt=currentWaktName(); it.baseId=it.baseId||it.id; S.wPlanned[it.wakt]=true; }
+  });
+}
+
+// ══ CLOUD BOOT ══
+let booted=false;
+function bootWith(state){
+  if(booted) return; booted=true;
+  if(state&&typeof state==='object'&&Object.keys(state).length){
+    S=Object.assign(defaultState(),state);
+  }
+  normalizePT();
+  try{ localStorage.setItem('rakeebState',JSON.stringify(S)) }catch(e){}
+  applyLib();
+  migrate();
+  checkRollover();
+  lastWakt=currentWaktName();
+  syncNativeAlarms(false);
+  routeHome();
+}
+if(window.parent!==window){
+  window.addEventListener('message',e=>{
+    const m=e.data;
+    if(m&&m.type==='rakeeb:state') bootWith(m.data);
+  });
+  window.parent.postMessage({type:'rakeeb:ready'},'*');
+  setTimeout(()=>bootWith(cachedState()),5000);
+}else{
+  bootWith(cachedState());
+}
+</script>
+</body>
+</html>
