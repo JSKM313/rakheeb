@@ -691,6 +691,28 @@ body{color:var(--white);font-family:'Inter',sans-serif;font-size:15px}
 .rep-grp-sub{font-size:10px;color:var(--muted)}
 .rep-grp-score{margin-left:auto;text-align:right;font-size:18px;font-weight:500;color:var(--gold)}
 .rep-grp-score span{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.rm-day{font-size:11px;color:var(--green);font-weight:600;margin:12px 0 5px}
+.rm-row{background:var(--bg2);border:.5px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:6px}
+.rm-who{font-size:12px;font-weight:500}
+.rm-wakt{font-size:9px;color:var(--muted2);margin-left:6px;font-weight:400}
+.rm-text{font-size:12px;color:var(--white);margin-top:3px;white-space:pre-wrap;word-break:break-word}
+.rm-kind{font-size:9px;color:var(--gold);margin-left:6px}
+.act-pick{width:100%;background:var(--bg2);border:.5px solid var(--border);border-radius:9px;color:var(--white);font-size:13px;padding:10px 12px;margin-bottom:12px;outline:none;font-family:'Inter',sans-serif}
+.act-pick:focus{border-color:var(--green)}
+.rep-act-row{cursor:pointer}
+.ad-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ad-back{background:transparent;border:.5px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:7px 11px;cursor:pointer;font-family:'Inter',sans-serif}
+.ad-back:hover{border-color:var(--green);color:var(--green)}
+.ad-ic{font-size:26px}
+.ad-name{font-size:16px;font-weight:500}
+.ad-sub{font-size:10px;color:var(--muted)}
+.ad-chart svg{display:block;width:100%;height:auto}
+.ad-legend{display:flex;gap:14px;font-size:10px;color:var(--muted);margin-top:6px}
+.ad-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.ad-w{display:flex;align-items:center;gap:8px;font-size:11px;margin-bottom:7px}
+.ad-w span:first-child{width:112px;color:var(--white);flex-shrink:0}
+.ad-w .rep-act-bar{flex:1}
+.ad-w b{min-width:44px;text-align:right;color:var(--green);font-weight:500}
 </style>
 </head>
 <body>
@@ -829,6 +851,7 @@ body{color:var(--white);font-family:'Inter',sans-serif;font-size:15px}
         <button class="rep-view-btn" data-view="activities" onclick="setReportView('activities')">Activities</button>
         <button class="rep-view-btn" data-view="salah" onclick="setReportView('salah')">Salah</button>
         <button class="rep-view-btn" data-view="daily" onclick="setReportView('daily')">Daily</button>
+        <button class="rep-view-btn" data-view="remarks" onclick="setReportView('remarks')">Remarks</button>
       </div>
 
       <div class="rep-periods" id="rep-periods">
@@ -1518,6 +1541,7 @@ function buildActRowHTML(item, p, catId){
 
 // Prayer card with activity strip at bottom
 // One card per wakt: the prayer row on top, that wakt's own planned activities below it
+// Compact card per wakt. Tapping it opens the wakt pop-up (prayer log + this wakt's activities).
 function waktCardHTML(it, num, state){
   const p=it.prayer;
   const st=S.exec[it.id]?.status||'pending';
@@ -1533,41 +1557,26 @@ function waktCardHTML(it, num, state){
     <div class="ei-icon">🕌</div>
     <div class="ei-body">
       <div class="ei-name">${it.name}${state==='now'?'<span class="wv-badge">NOW</span>':''}</div>
-      <div class="ei-meta">${S.pt[p]} → ${S.pt[nextP]} · ${nextP==='Fajr'?'until Fajr':'until '+nextP}</div>
+      <div class="ei-meta">${S.pt[p]} → ${S.pt[nextP]}</div>
     </div>
     <div class="ei-score ${scCls}">${score}<span style="font-size:9px;opacity:.7">/${max}</span></div>
     <div class="ei-arr">›</div>`;
 
   const acts=waktActs(p);
-  let listHTML='';
+  let strip;
   if(acts.length){
-    listHTML='<div class="wv-list">'+acts.map(a=>{
-      const ex=S.exec[a.id]||{};
-      const logs=ex.logs||[];
-      const tot=logs.reduce((s,l)=>s+(parseFloat(l.val)||0),0);
-      const tgt=parseFloat(a.val)||0;
-      const ast=ex.status||'pending';
-      const cls=ast==='done'?'st-done':ast==='skip'?'st-skip':'';
-      const pct=tgt>0?Math.min(100,Math.round(tot/tgt*100)):(tot>0?100:0);
-      const valTxt=tgt>0?`${tot}/${a.val} ${a.unit||''}`:(tot>0?`${tot} ${a.unit||''}`:(a.unit||'—'));
-      return `<div class="wa-row ${cls}" onclick="openActFromExec('${a.id}')">
-        <div class="wa-chk">${ast==='done'?'✓':ast==='skip'?'⏭':''}</div>
-        <div class="wa-ic">${a.icon}</div>
-        <div class="wa-body"><div class="wa-name">${a.name}</div><div class="wa-bar"><div style="width:${pct}%"></div></div></div>
-        <div class="wa-val">${valTxt}</div>
-      </div>`;
-    }).join('')+'</div>';
+    const stOf=a=>S.exec[a.id]?.status||'pending';
+    const doneN=acts.filter(a=>stOf(a)==='done').length;
+    const dots=acts.map(a=>`<div class="act-dot ${stOf(a)==='done'?'d-done':stOf(a)==='skip'?'d-skip':'d-pending'}" title="${a.name}"></div>`).join('');
+    strip=`<div class="ei-act-strip"><div class="ei-act-strip-dots">${dots}</div>
+      <div class="ei-act-count">${S.wPlanned[p]==='auto'?'🔁 ':''}<b>${doneN}</b>/${acts.length} activities</div></div>`;
   } else {
-    listHTML=`<div class="wv-empty">${S.wPlanned[p]==='skip'?'Planning skipped for this wakt':'Not planned yet'}</div>`;
+    strip=`<div class="ei-act-strip"><div class="ei-act-count" style="flex:1">${S.wPlanned[p]==='skip'?'Planning skipped for this wakt':'Not planned yet — tap to open'}</div></div>`;
   }
-  if(S.wPlanned[p]==='auto') listHTML=`<div class="wv-empty">🔁 Auto-planned from your last ${p} plan</div>`+listHTML;
-  const foot=`<div class="wv-foot"><button class="wv-plan-btn" onclick="openWaktPlanner('${p}')">${acts.length?'✏️ Edit wakt plan':'＋ Plan this wakt'}</button></div>`;
-
   return `
-  <div class="ei-prayer-wrap ${wrapCls}" id="eirow-${it.id}">
-    <div class="ei-prayer-top" onclick="openPrayerFromExec('${p}')">${topHTML}</div>
-    ${listHTML}
-    ${foot}
+  <div class="ei-prayer-wrap ${wrapCls}" id="eirow-${it.id}" onclick="openPrayerFromExec('${p}')">
+    <div class="ei-prayer-top">${topHTML}</div>
+    ${strip}
   </div>`;
 }
 
@@ -1815,7 +1824,7 @@ function openPopup(item){
   document.getElementById('pop-name').textContent=item.name;
   const st=S.exec[item.id]?.status||'pending';
   document.getElementById('pop-status').textContent=
-    (item.wakt?waktLabel(item.wakt)+' wakt · ':'')+(st==='done'?'✅ Completed':st==='skip'?'⏭ Skipped':'Tap to mark complete or skip');
+    ((item.wakt||item.prayer)?waktLabel(item.wakt||item.prayer)+' wakt · '+(item.prayer?S.pt[item.prayer]+' · ':''):'')+(st==='done'?'✅ Completed':st==='skip'?'⏭ Skipped':'Tap to mark complete or skip');
 
   let body='';
 
@@ -2072,7 +2081,7 @@ function closePrayerPlanPopup(){
 }
 
 // ══ REPORT SCREEN ══
-let reportPeriod='month', reportView='overall', reportGroup='all';
+let reportPeriod='month', reportView='overall', reportGroup='all', reportActivity='', reportActKeys=[];
 
 function setReportPeriod(p){
   reportPeriod=p;
@@ -2123,7 +2132,7 @@ function catInfo(id){
   return c?{id:c.id,icon:c.icon,name:c.name}:{id:id||'custom',icon:'✏️',name:'Custom'};
 }
 function setReportView(v){
-  reportView=v;
+  reportView=v; reportActivity='';
   document.querySelectorAll('.rep-view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   renderReport();
 }
@@ -2171,7 +2180,7 @@ function renderReport(){
   const A=reportAgg(days);
   const head=`<div class="rep-lbl">${label} · ${days.length} day${days.length!==1?'s':''} tracked</div>`;
   const v=reportView;
-  body.innerHTML=head+(v==='groups'?repGroupsHTML(A):v==='activities'?repActivitiesHTML(A):v==='salah'?repSalahHTML(A):v==='daily'?repDailyHTML(days):repOverallHTML(A,days));
+  body.innerHTML=head+(v==='groups'?repGroupsHTML(A):v==='activities'?repActivitiesHTML(A,days):v==='salah'?repSalahHTML(A):v==='daily'?repDailyHTML(days):v==='remarks'?repRemarksHTML(days):repOverallHTML(A,days));
 }
 
 function repOverallHTML(A,days){
@@ -2233,28 +2242,161 @@ function repGroupsHTML(A){
       <div class="rep-grp-score">${A.pScore}<span>${pcOf(A.pScore,A.pMax)}% of ${A.pMax}</span></div></div></div>`;
 }
 
-function repActivitiesHTML(A){
+function pickReportActivity(i){
+  i=parseInt(i);
+  reportActivity=(i>=0&&reportActKeys[i])?reportActKeys[i]:'';
+  reportView='activities';
+  renderReport();
+}
+function repActivitiesHTML(A,days){
   const groups=Object.values(A.groups).sort((a,b)=>b.score-a.score);
   if(reportGroup!=='all' && !A.groups[reportGroup]) reportGroup='all';
+  if(reportActivity && !A.acts[reportActivity]) reportActivity='';
+  if(reportActivity) return repActivityDetailHTML(A,days,reportActivity);
   const chips=`<div class="cat-selector" style="margin-bottom:12px">
     <button class="cat-btn${reportGroup==='all'?' open':''}" onclick="setReportGroup('all')">All</button>`+
     groups.map(g=>`<button class="cat-btn${reportGroup===g.id?' open':''}" onclick="setReportGroup('${g.id}')">${g.icon} ${g.name}</button>`).join('')+'</div>';
   const list=Object.values(A.acts).filter(t=>reportGroup==='all'||t.cat===reportGroup).sort((a,b)=>b.score-a.score);
+  reportActKeys=list.map(t=>t.cat+'|'+t.name);
   if(!list.length) return chips+'<div class="bulk-empty">No activities in this period.</div>';
-  const rows=list.map(t=>{
+  const pick=`<select class="act-pick" onchange="pickReportActivity(this.value)"><option value="-1">🔍 Report of a single activity…</option>`+
+    list.map((t,i)=>`<option value="${i}">${escH(t.icon+' '+t.name)}</option>`).join('')+'</select>';
+  const rows=list.map((t,i)=>{
     const pc=pcOf(t.score,t.max), n=t.days.size, g=catInfo(t.cat);
-    return `<div class="rep-act-row">
+    return `<div class="rep-act-row" onclick="pickReportActivity(${i})">
       <div class="rep-act-icon">${t.icon}</div>
       <div class="rep-act-body">
-        <div class="rep-act-top"><span class="rep-act-name">${t.name}</span><span class="rep-act-done">${fmtN(t.done)}${t.unit?' '+t.unit:''}</span></div>
+        <div class="rep-act-top"><span class="rep-act-name">${escH(t.name)}</span><span class="rep-act-done">${fmtN(t.done)}${t.unit?' '+t.unit:''}</span></div>
         <div class="rep-act-bar"><div class="rep-act-fill" style="width:${pc}%"></div></div>
-        <div class="rep-act-meta">${reportGroup==='all'?g.icon+' '+g.name+' · ':''}${n} of ${A.days} days${n?' · avg '+fmtN(t.done/n)+' per active day':''}${t.target?' · '+pcOf(t.done,t.target)+'% of target':''}</div>
+        <div class="rep-act-meta">${reportGroup==='all'?g.icon+' '+g.name+' · ':''}${n} of ${A.days} days${n?' · avg '+fmtN(t.done/n)+' per active day':''}${t.target?' · '+pcOf(t.done,t.target)+'% of target':''} · tap for graph ›</div>
       </div>
       <div class="rep-act-score">${t.score}</div>
     </div>`;
   }).join('');
   const tot=list.reduce((s,t)=>s+t.score,0), mx=list.reduce((s,t)=>s+t.max,0);
-  return chips+`<div class="rep-card"><div class="rep-card-hd">⚡ ${reportGroup==='all'?'All activities':catInfo(reportGroup).name} <span>${list.length} · ${tot}/${mx} pts</span></div><div class="rep-acts">${rows}</div></div>`;
+  return chips+pick+`<div class="rep-card"><div class="rep-card-hd">⚡ ${reportGroup==='all'?'All activities':catInfo(reportGroup).name} <span>${list.length} · ${tot}/${mx} pts</span></div><div class="rep-acts">${rows}</div></div>`;
+}
+
+// ── single activity ──
+function actDayMap(days,key){
+  const m={};
+  days.forEach(d=>(d.activities||[]).forEach(a=>{
+    if((a.cat||'custom')+'|'+a.name!==key) return;
+    const x=m[d.date]||(m[d.date]={done:0,target:0,score:0,max:0,remarks:[],byWakt:{}});
+    x.done+=a.done||0; x.target+=a.target||0; x.score+=a.score||0; x.max+=a.max||0;
+    if(a.remark) x.remarks.push(a.remark);
+    Object.entries(a.byWakt||{}).forEach(([w,v])=>{ x.byWakt[w]=(x.byWakt[w]||0)+v; });
+  }));
+  return m;
+}
+function actBuckets(map,from,to){
+  if(to<from) to=from;
+  let f=from; const maxSpan=800;
+  const dates=[]; for(let d=f; d<=to; d=addDays(d,1)){ dates.push(d); if(dates.length>3000) break; }
+  const use=dates.slice(-maxSpan);
+  const mode=use.length<=62?'day':use.length<=400?'week':'month';
+  const B=[], idx={};
+  use.forEach((dt,i)=>{
+    const k=mode==='day'?dt:mode==='week'?'w'+Math.floor(i/7):dt.slice(0,7);
+    if(!(k in idx)){
+      const dd=new Date(dt+'T00:00:00');
+      const label=mode==='day'?String(dd.getDate()):mode==='week'?dd.toLocaleDateString('en-GB',{day:'numeric',month:'short'}):dd.toLocaleDateString('en-GB',{month:'short',year:'2-digit'});
+      idx[k]=B.length; B.push({label,start:dt,done:0,target:0});
+    }
+    const b=B[idx[k]], x=map[dt];
+    if(x){ b.done+=x.done; b.target+=x.target; }
+  });
+  return {B,mode};
+}
+function niceMax(v){ const p=Math.pow(10,Math.floor(Math.log10(Math.max(v,1e-9)))); const m=v/p; return (m<=1?1:m<=2?2:m<=5?5:10)*p; }
+function actChartSVG(B,mode,unit){
+  const W=320,H=156,pl=36,pr=6,pt=10,pb=22,iw=W-pl-pr,ih=H-pt-pb;
+  const mx=niceMax(Math.max(1,...B.map(b=>b.done),...B.map(b=>b.target)));
+  const y=v=>pt+ih-(v/mx)*ih, bw=iw/B.length, bar=Math.max(1,Math.min(bw*0.72,28));
+  let g='';
+  [0,mx/2,mx].forEach(v=>{
+    g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--border)" stroke-width="0.6"/>`+
+       `<text x="${pl-4}" y="${y(v)+3}" text-anchor="end" font-size="9" style="fill:var(--muted2)">${fmtN(v)}</text>`;
+  });
+  let bars='';
+  B.forEach((b,i)=>{
+    const cx=pl+bw*(i+.5), h=Math.max(b.done>0?1.5:0,(b.done/mx)*ih);
+    bars+=`<rect x="${(cx-bar/2).toFixed(1)}" y="${(pt+ih-h).toFixed(1)}" width="${bar.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" style="fill:var(--green)"><title>${escH(b.label)}: ${fmtN(b.done)}${unit?' '+escH(unit):''}${b.target?' (target '+fmtN(b.target)+')':''}</title></rect>`;
+  });
+  let tl='';
+  if(B.some(b=>b.target>0)){
+    tl=`<polyline fill="none" stroke-dasharray="3 3" stroke-width="1.4" style="stroke:var(--gold)" points="${B.map((b,i)=>(pl+bw*(i+.5)).toFixed(1)+','+y(b.target).toFixed(1)).join(' ')}"/>`;
+  }
+  const n=B.length, want=Math.min(n,6), shown=new Set();
+  for(let k=0;k<want;k++) shown.add(want===1?0:Math.round(k*(n-1)/(want-1)));
+  let xl='';
+  shown.forEach(i=>{ xl+=`<text x="${(pl+bw*(i+.5)).toFixed(1)}" y="${H-7}" text-anchor="middle" font-size="9" style="fill:var(--muted2)">${escH(B[i].label)}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Chart of ${escH(unit||'amount')} over time">${g}${bars}${tl}${xl}</svg>`;
+}
+function actStreak(key){
+  const set=new Set();
+  Object.values(S.history).forEach(d=>(d.activities||[]).forEach(a=>{ if((a.cat||'custom')+'|'+a.name===key&&(a.done||0)>0) set.add(d.date); }));
+  let cur=cycleKey(); if(!set.has(cur)) cur=addDays(cur,-1);
+  let n=0; while(set.has(cur)){ n++; cur=addDays(cur,-1); }
+  return n;
+}
+function repActivityDetailHTML(A,days,key){
+  const t=A.acts[key], g=catInfo(t.cat), map=actDayMap(days,key);
+  const {from,to}=getReportRange();
+  const {B,mode}=actBuckets(map,from,to);
+  const dates=Object.keys(map).sort();
+  const active=dates.filter(d=>map[d].done>0);
+  let best=null; active.forEach(d=>{ if(!best||map[d].done>map[best].done) best=d; });
+  const wk={}; dates.forEach(d=>Object.entries(map[d].byWakt).forEach(([w,v])=>{ wk[w]=(wk[w]||0)+v; }));
+  const wkMax=Math.max(1,...Object.values(wk));
+  const wkRows=PRAYERS.map(waktLabel).filter(w=>wk[w]>0).map(w=>`<div class="ad-w"><span>${waktIcon(w)} ${w}</span><div class="rep-act-bar"><div class="rep-act-fill" style="width:${Math.round(wk[w]/wkMax*100)}%"></div></div><b>${fmtN(wk[w])}</b></div>`).join('');
+  const rem=dates.slice().reverse().filter(d=>map[d].remarks.length);
+  const remHTML=rem.map(d=>`<div class="rm-row"><div class="rm-who">${new Date(d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div>${map[d].remarks.map(r=>`<div class="rm-text">${escH(r)}</div>`).join('')}</div>`).join('');
+  const rows=dates.slice().reverse().map(d=>{
+    const x=map[d];
+    return `<tr><td>${new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td><td class="tc">${fmtN(x.done)}</td><td class="tc">${x.target?fmtN(x.target):'—'}</td><td class="tc">${x.target?pcOf(x.done,x.target)+'%':'—'}</td><td class="tc gold">${x.score}</td></tr>`;
+  }).join('');
+  const unit=t.unit?' '+escH(t.unit):'';
+  const bucketTxt=mode==='day'?'per day':mode==='week'?'per week':'per month';
+  return `
+  <div class="ad-head">
+    <button class="ad-back" onclick="pickReportActivity(-1)">← All</button>
+    <div class="ad-ic">${t.icon}</div>
+    <div><div class="ad-name">${escH(t.name)}</div><div class="ad-sub">${g.icon} ${g.name}${t.unit?' · measured in '+escH(t.unit):''}</div></div>
+  </div>
+  <div class="rep-card"><div class="rep-pgrid">
+    <div class="rep-pstat"><b>${fmtN(t.done)}</b><span>Total${unit}</span></div>
+    <div class="rep-pstat"><b>${active.length}<small style="font-size:11px;color:var(--muted)"> / ${A.days}</small></b><span>Days done</span><i>${pcOf(active.length,A.days)}%</i></div>
+    <div class="rep-pstat"><b>${active.length?fmtN(t.done/active.length):0}</b><span>Avg per active day</span></div>
+    <div class="rep-pstat"><b>${best?fmtN(map[best].done):0}</b><span>Best day</span><i>${best?new Date(best+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):''}</i></div>
+    <div class="rep-pstat"><b>${actStreak(key)}</b><span>🔥 Streak (days)</span></div>
+    <div class="rep-pstat"><b>${t.score}</b><span>Points</span><i>${pcOf(t.score,t.max)}% of ${t.max}</i></div>
+  </div></div>
+  <div class="rep-card"><div class="rep-card-hd">Graph <span>${t.unit?escH(t.unit)+' ':''}${bucketTxt}</span></div>
+    <div class="ad-chart">${actChartSVG(B,mode,t.unit)}</div>
+    <div class="ad-legend"><span><i style="background:var(--green)"></i>Done</span>${B.some(b=>b.target>0)?'<span><i style="background:var(--gold)"></i>Target</span>':''}</div>
+  </div>
+  ${wkRows?`<div class="rep-card"><div class="rep-card-hd">By wakt <span>where you did it</span></div>${wkRows}</div>`:''}
+  ${remHTML?`<div class="rep-card"><div class="rep-card-hd">💬 Remarks <span>${rem.length} day${rem.length!==1?'s':''}</span></div>${remHTML}</div>`:''}
+  <div class="rep-card"><div class="rep-card-hd">Day by day</div><div class="rep-table-wrap"><table class="rep-table">
+    <thead><tr><th>Date</th><th class="tc">Done</th><th class="tc">Target</th><th class="tc">%</th><th class="tc">Pts</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="5">No entries</td></tr>'}</tbody></table></div></div>
+  <button class="rep-export-btn alt" style="width:100%" onclick="exportActivityCSV()">⬇ Export this activity (CSV)</button>`;
+}
+function exportActivityCSV(){
+  const key=reportActivity, days=getReportDays(); if(!key||!days.length) return;
+  const t=reportAgg(days).acts[key]; if(!t) return;
+  const map=actDayMap(days,key), {from,to}=getReportRange();
+  const rows=[['Rakeeb — activity report'],['Activity',t.name],['Group',catInfo(t.cat).name],['Period',from+' to '+to],[],
+    ['Date','Done','Unit','Target','Percent','Points','Wakt breakdown','Remark']];
+  Object.keys(map).sort().forEach(d=>{
+    const x=map[d];
+    rows.push([d,fmtN(x.done),t.unit||'',x.target?fmtN(x.target):'',x.target?pcOf(x.done,x.target)+'%':'',x.score,
+      Object.entries(x.byWakt).map(([w,v])=>w+': '+fmtN(v)).join(' ; '),x.remarks.join(' | ')]);
+  });
+  rows.push([]); rows.push(['TOTAL',fmtN(t.done),t.unit||'','','',t.score]);
+  downloadCSV('rakeeb-'+t.name.replace(/[^\w\u0600-\u06FF-]+/g,'_')+'-'+from+'_to_'+to+'.csv',rows);
+  showToast('CSV exported ✓');
 }
 
 function repSalahHTML(A){
@@ -2280,6 +2422,31 @@ function repSalahHTML(A){
     <div class="rep-table-wrap"><table class="rep-table">
       <thead><tr><th>Prayer</th><th class="tc">Logged</th><th class="tc">On time</th><th class="tc">Mosque</th><th class="tc">Jamaath</th><th class="tc">Pts</th></tr></thead>
       <tbody>${rows}</tbody></table></div></div>`;
+}
+
+const escH=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function reportRemarks(days){
+  const out=[];
+  days.forEach(d=>{
+    Object.entries(d.prayers||{}).forEach(([p,v])=>{
+      if(v.remark) out.push({date:d.date,kind:'Salah',icon:'🕌',who:p+' prayer',wakt:waktLabel(p),text:v.remark});
+      if(v.note) out.push({date:d.date,kind:'Plan note',icon:'🕌',who:p+' prayer',wakt:waktLabel(p),text:v.note});
+    });
+    (d.activities||[]).forEach(a=>{
+      if(a.remark) out.push({date:d.date,kind:'Activity',icon:a.icon||'⚡',who:a.name,wakt:a.wakt?waktLabel(a.wakt):'',text:a.remark});
+    });
+  });
+  return out.sort((a,b)=>b.date.localeCompare(a.date));
+}
+function repRemarksHTML(days){
+  const list=reportRemarks(days);
+  if(!list.length) return '<div class="bulk-empty">No remarks in this period.<br><span style="font-size:11px">Add one in the pop-up of a wakt or activity.</span></div>';
+  let html='<div class="rep-lbl">'+list.length+' remark'+(list.length!==1?'s':'')+'</div>', cur='';
+  list.forEach(r=>{
+    if(r.date!==cur){ cur=r.date; html+='<div class="rm-day">'+new Date(r.date+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+'</div>'; }
+    html+=`<div class="rm-row"><div class="rm-who">${r.icon} ${escH(r.who)}${r.wakt?`<span class="rm-wakt">${escH(r.wakt)}</span>`:''}${r.kind==='Plan note'?'<span class="rm-kind">plan note</span>':''}</div><div class="rm-text">${escH(r.text)}</div></div>`;
+  });
+  return html;
 }
 
 function repDailyHTML(days){
@@ -2386,6 +2553,11 @@ function exportReportCSV(){
   rows.push(['Group','Activity','Done','Unit','Target','Points','Max','Active days']);
   Object.values(A.acts).sort((a,b)=>b.score-a.score).forEach(t=>rows.push([catInfo(t.cat).name,t.name,fmtN(t.done),t.unit||'',fmtN(t.target),t.score,t.max,t.days.size]));
 
+  const rm=reportRemarks(days);
+  if(rm.length){
+    rows.push([]); rows.push(['REMARKS']); rows.push(['Date','Type','Item','Wakt','Remark']);
+    rm.forEach(r=>rows.push([r.date,r.kind,r.who,r.wakt,r.text]));
+  }
   downloadCSV(`rakeeb-report-${from}_to_${to}.csv`, rows);
   showToast('CSV exported ✓');
 }
@@ -2400,7 +2572,7 @@ function exportDetailCSV(){
   rows.push(['Period', from+' to '+to]);
   rows.push([]);
   rows.push(['Date','Type','Category','Item','Location','Congregation','Timing','Khushu',
-             'Target','Achieved','Unit','Wakt breakdown','Status','Score','Max']);
+             'Target','Achieved','Unit','Wakt breakdown','Status','Score','Max','Remark']);
 
   days.forEach(d=>{
     Object.entries(d.prayers||{}).forEach(([p,v])=>{
@@ -2408,12 +2580,12 @@ function exportDetailCSV(){
         v.mosque?'Mosque':'', v.jamaath?'Jamaath':'',
         v.ontime?'On time':v.late?'Late':v.qadha?'Qadha':v.missed?'Missed':'',
         v.khushu||'', '','','','',
-        v.score>0?'Logged':'Pending', v.score, v.max]);
+        v.score>0?'Logged':'Pending', v.score, v.max, [v.remark,v.note&&'(plan note) '+v.note].filter(Boolean).join(' | ')]);
     });
     (d.activities||[]).forEach(a=>{
       const wk=Object.entries(a.byWakt||{}).map(([w,val])=>w+': '+val).join(' ; ');
       rows.push([d.date,'Activity',a.cat||'',a.name,'','','','',
-        a.target||'', a.done||0, a.unit||'', (a.wakt?a.wakt+' plan · ':'')+wk, a.status||'', a.score, a.max]);
+        a.target||'', a.done||0, a.unit||'', (a.wakt?a.wakt+' plan · ':'')+wk, a.status||'', a.score, a.max, a.remark||'']);
     });
   });
 
@@ -2485,6 +2657,8 @@ function buildHistDetail(d){
     h+=`<div class="hist-row"><span>${p}</span>
       <span class="hist-row-tags">${tags.join(' ')||'—'}</span>
       <b>${v.score}</b></div>`;
+    if(v.remark) h+=`<div class="rm-text" style="font-size:11px;color:var(--muted);padding:0 0 4px 8px">💬 ${escH(v.remark)}</div>`;
+    if(v.note) h+=`<div class="rm-text" style="font-size:11px;color:var(--muted);padding:0 0 4px 8px">📝 ${escH(v.note)}</div>`;
   });
   if((d.activities||[]).length){
     h+='<div class="hist-sec-lbl" style="margin-top:10px">⚡ Activities</div>';
@@ -2493,6 +2667,7 @@ function buildHistDetail(d){
       h+=`<div class="hist-row"><span>${a.icon} ${a.name}${a.wakt?' · '+waktIcon(a.wakt)+' '+a.wakt:''}</span>
         <span class="hist-row-tags">${a.done}/${a.target||'—'}${wakts?' · '+wakts:''}</span>
         <b>${a.score}</b></div>`;
+      if(a.remark) h+=`<div class="rm-text" style="font-size:11px;color:var(--muted);padding:0 0 4px 8px">💬 ${escH(a.remark)}</div>`;
     });
   }
   return h;
@@ -2656,7 +2831,9 @@ function recordToday(dateKey){
       mosque:!!lg.mosque, jamaath:!!lg.jamaath,
       ontime:!!lg.ontime, late:!!lg.late,
       qadha:!!lg.qadha, missed:!!lg.missed,
-      khushu:lg.k||''
+      khushu:lg.k||'',
+      remark:((S.exec['prayer-'+it.prayer]||{}).remark||'').trim(),
+      note:((S.prayerPlan[it.prayer]||{}).note||'').trim()
     };
   });
 
@@ -2672,6 +2849,7 @@ function recordToday(dateKey){
       unit:it.unit||'', target:parseFloat(it.val)||0,
       done:total, score:r.score, max:r.max,
       status:ex.status||'pending',
+      remark:(ex.remark||'').trim(),
       byWakt:logs.reduce((m,l)=>{m[l.wakt]=(m[l.wakt]||0)+(parseFloat(l.val)||0);return m;},{})
     });
   });
@@ -2853,8 +3031,8 @@ function buildBulkActsHTML(prayer){
     rows+=`
     <div class="bulk-act-row${filled?' filled':''}" id="bulkrow-${it.id}">
       <div class="bulk-act-icon">${it.icon}</div>
-      <div class="bulk-act-body">
-        <div class="bulk-act-name">${it.name}</div>
+      <div class="bulk-act-body" onclick="openActFromExec('${it.id}')" style="cursor:pointer">
+        <div class="bulk-act-name">${it.name} ›</div>
         <div class="bulk-act-meta">
           ${target>0?`Target ${it.val} · <b>${total}</b> done${remaining>0?` · ${remaining} left`:' ✓'}`:'No target'}
           ${thisWaktVal>0?` · <b>${thisWaktVal}</b> this wakt`:''}
@@ -2871,6 +3049,7 @@ function buildBulkActsHTML(prayer){
     <div class="bulk-header">
       <div class="bulk-wakt-badge">${waktIcon(wakt)} ${wakt}</div>
       <div class="bulk-quick">
+        <button class="bulk-quick-btn" onclick="closePopup();openWaktPlanner('${prayer}')">✏️ Plan</button>
         <button class="bulk-quick-btn" onclick="fillBulkTargets('${prayer}')">Fill targets</button>
         <button class="bulk-quick-btn" onclick="clearBulkInputs()">Clear</button>
       </div>
@@ -3301,6 +3480,14 @@ function calcTotalScore(){
 
 
 
+
+document.getElementById('pop-remark').addEventListener('input',function(){
+  const it=currentPopItem; if(!it||it.type==='prayerplan') return;
+  if(!S.exec[it.id]) S.exec[it.id]={logs:[],remark:''};
+  S.exec[it.id].remark=this.value;
+  clearTimeout(window.__rmT);
+  window.__rmT=setTimeout(()=>{ if(S.plan.length) recordToday(); else saveState(); },500);
+});
 
 function onReturn(){
   if(checkRollover()){ showScreen('s-start'); return; }
