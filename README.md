@@ -14,6 +14,13 @@ Rakeeb with real azan alarms. Alarms ring at azan time even when the app is clos
 5. Send `Rakeeb.apk` to your phone and open it. Android will ask to allow
    "install unknown apps" for the app you opened it from — allow it once.
 
+## Updating the app later
+
+Upload the changed files to GitHub (the same drag-and-drop), wait for the green tick in
+**Actions**, download the new **Rakeeb-apk** and open it on the phone. Because every build is
+signed with the same key (`debug.keystore`), it installs over the old app and keeps your data.
+In Rakeeb, ⚙ Settings → bottom shows the build label, so you can check which version is installed.
+
 ## First run on the phone
 
 1. Open Rakeeb → ⚙ Settings → **Wakt alarms**. Check your prayer times first.
